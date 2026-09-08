@@ -1,0 +1,22 @@
+{
+  "minViews": 300000,
+  "initialPages": 3,
+  "maxPages": 3,
+  "nextRefNo": 1,
+  "myHandle": "",
+  "autoSnapshot": true,
+  "lastSnapshotDate": null,
+  "lastRunAt": null,
+  "lastSummary": null,
+  "channel": {
+    "brief": "",
+    "pillars": []
+  },
+  "autoAnalyze": true,
+  "analyzeMax": 20,
+  "analyzeFails": {},
+  "lastAnalyzeAt": null,
+  "lastAnalyzeSummary": null,
+  "myTranscripts": true,
+  "myTranscriptTop": 10
+}

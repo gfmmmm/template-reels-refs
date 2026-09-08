@@ -1,0 +1,8 @@
+.env
+.vercel/
+node_modules/
+.DS_Store
+계정/*
+!계정/_template/
+기획/
+.omc/

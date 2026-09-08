@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>릴스 레퍼런스</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg: #ffffff; --line: #e6e6e6; --line-soft: #f0f0f0; --text: #222; --muted: #7a7a7a; --faint: #a3a3a3;
+    --soft: #f5f5f5; --ink: #111; --mark: #fff59d; --neg: #b00020; --radius: 8px; --sidebar: 200px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a { color: inherit; }
+
+  /* ── 레이아웃 ── */
+  .app { display: flex; min-height: 100vh; }
+  .sidebar { width: var(--sidebar); flex: 0 0 var(--sidebar); border-right: 1px solid var(--line); position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 22px 12px 16px; }
+  .brand { font-size: 17px; font-weight: 700; padding: 0 10px 18px; letter-spacing: -0.2px; }
+  .tabs { display: flex; flex-direction: column; gap: 2px; }
+  .tab { text-align: left; background: none; border: 0; border-radius: 6px; padding: 9px 10px; color: var(--muted); font-weight: 500; }
+  .tab:hover { background: var(--line-soft); color: var(--text); }
+  .tab.active { background: var(--soft); color: var(--ink); font-weight: 600; }
+  .sidebar .foot { margin-top: auto; padding: 0 10px; font-size: 12px; color: var(--faint); }
+  .main { flex: 1; min-width: 0; }
+  .page { max-width: 1400px; margin: 0 auto; padding: 28px 32px 60px; }
+
+  /* ── 공통 부품 ── */
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .toolbar { display: grid; grid-template-columns: 1fr minmax(220px, 420px) 1fr; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .toolbar .right { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+  .title { font-size: 16px; font-weight: 700; }
+  .title small { font-weight: 500; color: var(--muted); margin-left: 6px; }
+  .input { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; background: #fff; outline: none; }
+  .input:focus { border-color: #999; }
+  .select { border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; background: #fff; }
+  .btn { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 7px 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--soft); }
+  .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn.primary:hover { background: #333; }
+  .btn.primary:disabled { background: #bbb; border-color: #bbb; cursor: not-allowed; }
+  .btn.toggle.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn.big { padding: 12px 20px; font-size: 15px; font-weight: 600; }
+  .btn.icon { padding: 4px 8px; border: 0; background: none; color: var(--faint); }
+  .btn.icon:hover { color: var(--ink); }
+  mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 2px; }
+  .empty { text-align: center; padding: 90px 20px; color: var(--muted); }
+  .empty p { margin: 0 0 16px; }
+  .muted { color: var(--muted); }
+  .faint { color: var(--faint); }
+  .small { font-size: 12px; }
+  .label { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; letter-spacing: .02em; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg button { border: 0; background: #fff; padding: 4px 10px; font-size: 12px; color: var(--muted); }
+  .seg button + button { border-left: 1px solid var(--line-soft); }
+  .seg button.on { background: var(--ink); color: #fff; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 600; background: var(--soft); color: var(--ink); border-radius: 999px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; }
+  .neg { color: var(--neg); }
+
+  /* ── 카드 그리드 ── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+  .card { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: #fff; cursor: pointer; display: flex; flex-direction: column; }
+  .card:hover { border-color: #bbb; }
+  .thumb { position: relative; aspect-ratio: 9 / 16; background: var(--soft); display: block; overflow: hidden; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .nothumb { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 12px; }
+  .badge { position: absolute; top: 8px; left: 8px; background: rgba(255,255,255,.92); color: var(--ink); font-size: 12px; font-weight: 700; padding: 3px 7px; border-radius: 5px; line-height: 1.3; }
+  .heart { position: absolute; top: 6px; right: 6px; border: 0; background: rgba(255,255,255,.92); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #999; font-size: 14px; }
+  .heart.on { color: var(--ink); }
+  .dur { position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,.65); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+  .tag { position: absolute; left: 8px; bottom: 8px; background: rgba(0,0,0,.65); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+  .ana { position: absolute; top: 36px; left: 8px; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,.92); color: var(--muted); }
+  .ana.done { background: var(--ink); color: #fff; }
+  .com { position: absolute; top: 36px; right: 8px; font-size: 12px; background: rgba(255,255,255,.92); border-radius: 4px; padding: 1px 5px; }
+  .card.hid { opacity: .55; }
+  /* ── AI 인사이트 ── */
+  .dm-meta { font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding-right: 30px; }
+  .dm-meta b { color: var(--ink); }
+  .dm-topic { font-size: 18px; font-weight: 800; letter-spacing: -0.2px; line-height: 1.35; margin: 6px 0 12px; }
+  .dm-topic.pending { color: var(--faint); font-weight: 600; }
+  .insight { border: 1px solid var(--line); border-radius: var(--radius); background: var(--soft); padding: 14px 16px; margin-top: 14px; }
+  .insight .ititle { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+  .insight .rel { font-size: 11.5px; color: var(--muted); margin: -2px 0 10px; }
+  .insight .rel b { color: var(--ink); }
+  .fld { margin-top: 10px; }
+  .fld-label { display: inline-block; font-size: 11px; font-weight: 700; background: #e4e4e4; color: var(--ink); border-radius: 4px; padding: 2px 7px; margin-bottom: 5px; }
+  .fld-body { font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; }
+  .fld ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
+  .fld li { margin: 3px 0; }
+  .borrow { border: 2px solid var(--ink); border-radius: var(--radius); background: #fff; padding: 12px 14px; margin-top: 12px; }
+  .borrow .fld-label { background: var(--ink); color: #fff; }
+  .sale { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 12px 14px; margin-top: 12px; }
+  .pending-box { border: 1px dashed var(--line); border-radius: var(--radius); padding: 18px; text-align: center; color: var(--muted); margin-top: 14px; }
+  .pending-box .btn { margin-top: 10px; }
+  .chan textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; font: inherit; resize: vertical; }
+  .card .meta { padding: 9px 10px 10px; display: flex; flex-direction: column; gap: 3px; }
+  .card .who { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+  .card .who .acct { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .who .date { flex: none; }
+  .card .stats { font-size: 11px; color: var(--faint); }
+  .card .cap { font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── 상세 팝업 (화면 중앙) ── */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 40; }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+  .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(.98); width: min(960px, calc(100vw - 32px)); max-height: calc(100vh - 32px); background: #fff; border: 1px solid var(--line); border-radius: 12px; z-index: 50; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; display: grid; grid-template-columns: 340px 1fr; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+  .modal .player, .modal .body { min-height: 0; max-height: calc(100vh - 32px); }
+  .modal.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+  .modal .close { position: absolute; top: 10px; right: 10px; z-index: 2; font-size: 16px; }
+  .modal .player { background: #fafafa; border-right: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow-y: auto; }
+  .modal .player iframe { width: 100%; max-width: 328px; height: 620px; border: 0; border-radius: var(--radius); background: #fff; display: block; }
+  .modal .body { padding: 22px 26px 26px; overflow-y: auto; min-width: 0; }
+  .modal .head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding-right: 30px; }
+  .modal .head .label { font-size: 16px; }
+  .modal h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .modal .name { font-size: 12px; color: var(--muted); }
+  .modal .actions { display: flex; gap: 8px; margin: 14px 0 4px; flex-wrap: wrap; }
+  .modal h4 { margin: 18px 0 6px; font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .04em; }
+  .facts { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .facts div { border: 1px solid var(--line-soft); border-radius: 6px; padding: 8px 10px; min-width: 0; }
+  .facts b { display: block; font-size: 15px; }
+  .facts span { font-size: 11px; color: var(--muted); }
+  .modal .text { white-space: pre-wrap; word-break: break-word; font-size: 13.5px; line-height: 1.65; }
+
+  /* ── 경쟁사 ── */
+  .comp-wrap { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+  .box { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; background: #fff; }
+  .box h2 { margin: 0 0 2px; font-size: 15px; }
+  .box .desc { margin: 0 0 14px; font-size: 12px; color: var(--muted); }
+  .bench { display: flex; flex-direction: column; gap: 22px; }
+  .bench .head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .bench .head h3 { margin: 0; font-size: 13px; font-weight: 600; }
+  .rank { display: grid; grid-template-columns: 18px minmax(90px, 150px) 1fr 76px; gap: 10px; align-items: center; padding: 4px 0; font-size: 13px; }
+  .rank .n { color: var(--faint); font-size: 12px; }
+  .rank .h { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .rank.me .h, .rank.me .n { color: var(--ink); font-weight: 700; }
+  .rank .bar { height: 10px; background: var(--line-soft); border-radius: 999px; overflow: hidden; position: relative; }
+  .rank .bar i { position: absolute; top: 0; bottom: 0; background: #c9c9c9; border-radius: 999px; }
+  .rank.me .bar i { background: var(--ink); }
+  .rank .bar i.negv { background: #e39aa6; }
+  .rank .bar.zero::before { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: #bbb; }
+  .rank .v { text-align: right; font-variant-numeric: tabular-nums; }
+  .rank.me .v { font-weight: 700; }
+  .chart-svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 12px; }
+  .legend span i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .legend b { margin-left: 4px; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .toolbar-flex { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .mebar { display: flex; align-items: center; gap: 8px; white-space: nowrap; flex: none; }
+  .mebar .input { width: 200px; }
+  .mebar .btn { white-space: nowrap; flex: none; }
+  .me-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
+  .me-wrap > .box, .comp-wrap > .box { min-width: 0; }
+  .profile { display: grid; grid-template-columns: 110px 1fr; gap: 20px; align-items: start; }
+  .profile .avatar { width: 110px; height: 110px; border-radius: 50%; background: var(--soft); object-fit: cover; display: block; border: 1px solid var(--line-soft); }
+  .profile .avatar.none { display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 12px; }
+  .profile .handle { font-size: 24px; font-weight: 800; letter-spacing: -0.3px; line-height: 1.2; }
+  .profile .fullname { color: var(--muted); margin-bottom: 12px; }
+  .profile .nums { display: flex; gap: 20px; margin-bottom: 12px; flex-wrap: nowrap; }
+  .profile .nums div { white-space: nowrap; }
+  .profile .nums b { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+  .profile .nums span { font-size: 12px; color: var(--muted); margin-left: 4px; }
+  .profile .bio { white-space: pre-wrap; word-break: break-word; font-size: 13.5px; line-height: 1.6; }
+  .profile .link { display: inline-block; margin-top: 6px; font-size: 13px; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .profile .sumline { grid-column: 1 / -1; border-top: 1px solid var(--line-soft); padding-top: 12px; margin-top: 4px; font-size: 13px; color: var(--muted); }
+  .profile .sumline b { color: var(--ink); }
+  .hrow { display: flex; gap: 12px; overflow-x: auto; min-width: 0; max-width: 100%; scroll-snap-type: x mandatory; padding: 2px 2px 10px; -webkit-overflow-scrolling: touch; }
+  .hrow .card { flex: 0 0 190px; scroll-snap-align: start; }
+  .hrow::-webkit-scrollbar { height: 8px; }
+  .hrow::-webkit-scrollbar-thumb { background: #ddd; border-radius: 999px; }
+  .box .head-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .box .head-row h2 { margin: 0; }
+  .trend-head { font-size: 13px; color: var(--muted); margin: -8px 0 12px; }
+  .trend-head b { color: var(--ink); }
+  .trend-head .delta { font-weight: 700; margin-left: 6px; }
+
+  /* ── 설정 ── */
+  .settings { max-width: 720px; display: flex; flex-direction: column; gap: 28px; }
+  .section h2 { font-size: 15px; margin: 0 0 4px; }
+  .section .desc { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
+  .section .row .input { max-width: 320px; }
+  .list { border: 1px solid var(--line); border-radius: var(--radius); margin-top: 10px; }
+  .list .item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-top: 1px solid var(--line-soft); }
+  .list .item:first-child { border-top: 0; }
+  .list .item .h { flex: 1; }
+  .list .item .c { font-size: 12px; color: var(--muted); }
+  .list .none { padding: 14px 12px; color: var(--faint); font-size: 13px; }
+  .logbox { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fafafa; padding: 12px 14px; max-height: 320px; overflow-y: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  .logbox:empty { display: none; }
+  .summary { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .summary:empty { display: none; }
+  .summary h3 { margin: 0 0 8px; font-size: 14px; }
+  .summary table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 12.5px; }
+  .summary td, .summary th { text-align: left; padding: 5px 8px; border-top: 1px solid var(--line-soft); }
+  .summary th { color: var(--muted); font-weight: 500; }
+  .summary .err { color: var(--neg); }
+  .msg { font-size: 12.5px; margin-top: 6px; min-height: 18px; }
+  .msg.err { color: var(--neg); }
+  .msg.okk { color: var(--ink); }
+  .check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 9px 16px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 60; }
+  .toast.show { opacity: 1; }
+
+  /* ── 좁은 화면 ── */
+  @media (max-width: 720px) {
+    .app { flex-direction: column; }
+    .sidebar { width: auto; flex: none; height: auto; position: sticky; border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; background: #fff; z-index: 10; }
+    .brand { padding: 0 6px 0 0; font-size: 15px; white-space: nowrap; }
+    .tabs { flex-direction: row; overflow-x: auto; flex: 1; }
+    .tab { white-space: nowrap; padding: 7px 10px; }
+    .sidebar .foot { margin-top: 0; padding: 0; white-space: nowrap; }
+    .page { padding: 16px 14px 40px; }
+    .toolbar { grid-template-columns: 1fr; }
+    .toolbar .right { justify-content: flex-start; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .modal { grid-template-columns: 1fr; width: calc(100vw - 16px); max-height: calc(100vh - 16px); overflow-y: auto; display: block; }
+    .modal .player { border-right: 0; border-bottom: 1px solid var(--line); padding: 12px; overflow: visible; }
+    .modal .player iframe { height: 560px; }
+    .modal .body { padding: 16px; }
+    .facts { grid-template-columns: repeat(3, 1fr); }
+    .rank { grid-template-columns: 18px minmax(70px, 110px) 1fr 70px; gap: 6px; }
+    .mebar .input { width: 150px; }
+    .me-wrap { grid-template-columns: 1fr; }
+    .profile { grid-template-columns: 80px 1fr; gap: 14px; }
+    .profile .avatar { width: 80px; height: 80px; }
+    .profile .handle { font-size: 20px; }
+    .profile .nums { gap: 14px; }
+    .profile .nums b { font-size: 18px; }
+  }
+body.static .rw { display: none !important; }
+ul.plain { margin: 6px 0 10px; padding-left: 18px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">릴스 레퍼런스</div>
+    <nav class="tabs" id="tabs"></nav>
+    <div class="foot" id="credits">남은 크레딧 –</div>
+  </aside>
+  <main class="main"><div class="page" id="page"></div></main>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="modal" id="panel" role="dialog" aria-modal="true" aria-hidden="true"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+// ───────────────────────── 탭 정의 (여기에 항목을 추가하면 탭이 늘어난다) ─────────────────────────
+const TABS = [
+  { id: 'refs', label: '레퍼런스', render: renderRefs },
+  { id: 'comp', label: '내 계정 & 경쟁사', render: renderCompetitors },
+  { id: 'settings', label: '설정', render: renderSettings },
+];
+
+// ───────────────────────── 상태 ─────────────────────────
+const state = {
+  tab: ls('tab') || 'refs',
+  refs: [], accounts: [], config: {}, status: null, comp: { myHandle: '', handles: [], snapshots: {}, reels: {}, profiles: {} },
+  refsQuery: '', refsSort: 'views', refsFavOnly: false, refsCommerce: 'all', showHidden: false, mineSort: 'views',
+  favs: new Set(JSON.parse(ls('favs') || '[]')),
+  period: { uploads: 7, views: 0, growth: 7 }, // views 0 = 전체
+  pollTimer: null,
+  panelItem: null,
+};
+function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch {} return null; }
+const $ = (sel, el = document) => el.querySelector(sel);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// ───────────────────────── 형식 ─────────────────────────
+function fmtViews(n) {
+  if (n == null) return '-';
+  if (n >= 1e8) return trim1(n / 1e8) + '억';
+  if (n >= 1e4) return trim1(n / 1e4) + '만';
+  return Math.round(n).toLocaleString('ko-KR');
+}
+function trim1(x) { const s = x.toFixed(1); return s.endsWith('.0') ? s.slice(0, -2) : s; }
+const fmtNum = (n) => (n == null ? '-' : Number(n).toLocaleString('ko-KR'));
+const fmtSigned = (n) => (n == null ? '-' : (n > 0 ? '+' : '') + Number(n).toLocaleString('ko-KR'));
+function fmtDur(sec) { if (sec == null) return ''; const m = Math.floor(sec / 60), s = Math.round(sec % 60); return m + ':' + String(s).padStart(2, '0'); }
+function fmtDate(iso) { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)) return ''; return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`; }
+function fmtDateTime(iso) { if (!iso) return '-'; const d = new Date(iso); if (isNaN(d)) return '-'; return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+const fmtMD = (key) => { const [, m, d] = key.split('-'); return Number(m) + '/' + Number(d); };
+function hl(text, q) {
+  const s = esc(text);
+  if (!q) return s;
+  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  return s.replace(re, (m) => '<mark>' + m + '</mark>');
+}
+function firstLine(s) { return String(s || '').split(/\r?\n/).find((l) => l.trim()) || ''; }
+const labelOf = (r) => r.id ? '#' + r.id : '';
+// 상업성: 사람이 고친 값 > 수집 때 규칙 판정 > 캡션 규칙 (analyze.js·collect.js 와 같은 규칙)
+const COMMERCE_AD = /#\s?(광고|협찬)|#AD\b|유료\s*광고|제작\s*지원|협찬\s*받|제공\s*받|paid\s*partnership/i;
+const COMMERCE_SELL = /공구|공동\s*구매|스마트\s*스토어|구매\s*링크|판매\s*링크|와디즈|펀딩|마감\s*임박/;
+const COMMERCE_BADGE = { '공구': '🛒', '광고': '📢' };
+function commerceOf(r) {
+  if (r.commerceOverride) return r.commerceOverride === '일반' ? null : r.commerceOverride;
+  if (r.commerce !== undefined && r.commerce !== null) return r.commerce;
+  const cap = r.caption || '';
+  if (COMMERCE_AD.test(cap)) return '광고';
+  if (COMMERCE_SELL.test(cap)) return '공구';
+  return null;
+}
+const isAnalyzed = (r) => r.status === 'analyzed' && r.analysis && r.analysis.주제;
+
+// ───────────────────────── API ─────────────────────────
+async function api(path, opts = {}) {
+  const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || ('오류 ' + res.status));
+  return json;
+}
+// 클라우드(정적 배포) 모드: 서버 API 가 없으면 data/*.json 을 직접 읽는다. 보기 전용 — 수집·설정 변경은 내 컴퓨터에서.
+let STATIC = false;
+async function loadAll() {
+  if (!STATIC) {
+    try {
+      const st = await fetch('/api/status', { cache: 'no-store' });
+      if (!st.ok || !(st.headers.get('content-type') || '').includes('json')) throw new Error('no api');
+      const [refs, accounts, config, status, comp] = await Promise.all([api('/api/refs'), api('/api/accounts'), api('/api/config'), api('/api/status'), api('/api/competitors')]);
+      state.refs = refs; state.accounts = accounts; state.config = config; state.status = status; state.comp = comp;
+      renderCredits();
+      return;
+    } catch (e) {
+      if (location.protocol === 'file:') throw e;
+      STATIC = true; document.body.classList.add('static');
+    }
+  }
+  const j = async (f, fb) => { try { const r = await fetch('data/' + f + '?t=' + Date.now(), { cache: 'no-store' }); return r.ok ? await r.json() : fb; } catch { return fb; } };
+  const [cfg, refs, accounts, comp] = await Promise.all([j('config.json', {}), j('refs.json', []), j('accounts.json', []), j('competitors.json', {})]);
+  const norm = (h) => String(h || '').trim().replace(/^@/, '').toLowerCase();
+  const counts = {}; for (const r of refs) counts[r.account] = (counts[r.account] || 0) + 1;
+  state.refs = refs;
+  state.accounts = accounts.map((a) => (typeof a === 'string' ? a : a && a.handle)).filter(Boolean).map((h) => ({ handle: h, count: counts[h] || 0 }));
+  state.config = { minViews: Number(cfg.minViews) || 300000, myHandle: norm(cfg.myHandle), autoSnapshot: cfg.autoSnapshot !== false, lastRunAt: cfg.lastRunAt || null, lastSnapshotDate: cfg.lastSnapshotDate || null,
+    channel: { brief: String(cfg.channel?.brief || ''), pillars: Array.isArray(cfg.channel?.pillars) ? cfg.channel.pillars : [] }, autoAnalyze: cfg.autoAnalyze !== false, analyzeMax: Number(cfg.analyzeMax) || 20,
+    geminiKey: !!cfg.lastAnalyzeAt, lastAnalyzeAt: cfg.lastAnalyzeAt || null, lastAnalyzeSummary: cfg.lastAnalyzeSummary || null, myTranscripts: cfg.myTranscripts !== false, myTranscriptTop: Number(cfg.myTranscriptTop) || 10,
+    failedCodes: Object.entries(cfg.analyzeFails || {}).filter(([, n]) => n >= 3).map(([c]) => c) };
+  state.status = { running: false, kind: null, log: [], summary: cfg.lastSummary || null, lastRunAt: cfg.lastRunAt || null, finishedAt: cfg.lastRunAt || null, lastSnapshotDate: cfg.lastSnapshotDate || null, autoSnapshot: false };
+  state.comp = { myHandle: norm(cfg.myHandle), handles: comp.handles || [], snapshots: comp.snapshots || {}, reels: comp.reels || {}, profiles: comp.profiles || {} };
+  renderCredits();
+}
+function renderCredits() {
+  const s = state.status && state.status.summary;
+  const n = s && typeof s.creditsRemaining === 'number' ? s.creditsRemaining : null;
+  $('#credits').textContent = n == null ? '남은 크레딧 –' : '남은 크레딧 ' + fmtNum(n);
+}
+
+// ───────────────────────── 탭 ─────────────────────────
+function renderTabs() {
+  $('#tabs').innerHTML = TABS.map((t) => `<button class="tab${t.id === state.tab ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('');
+  $('#tabs').querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+}
+function showTab(id) {
+  if (!TABS.find((t) => t.id === id)) id = TABS[0].id;
+  state.tab = id; ls('tab', id);
+  renderTabs();
+  render();
+}
+function render() {
+  const t = TABS.find((x) => x.id === state.tab) || TABS[0];
+  const page = $('#page');
+  page.innerHTML = '';
+  t.render(page);
+}
+
+// ───────────────────────── 카드 ─────────────────────────
+function cardHtml(r, q = '', mine = false) {
+  const fav = state.favs.has(r.code);
+  const stats = [r.likes != null ? '좋아요 ' + fmtNum(r.likes) : '', r.comments != null ? '댓글 ' + fmtNum(r.comments) : ''].filter(Boolean).join(' · ');
+  const thumb = r.thumb ? `<img src="${esc(r.thumb)}" alt="" loading="lazy">` : `<div class="nothumb">썸네일 없음</div>`;
+  const com = mine ? null : commerceOf(r);
+  const done = !mine && isAnalyzed(r);
+  return `<article class="card${r.hidden ? ' hid' : ''}" data-code="${esc(r.code)}" title="클릭하면 상세 정보">
+    <div class="thumb">
+      ${thumb}
+      <span class="badge">${fmtViews(r.views)}</span>
+      ${mine ? '' : `<span class="ana${done ? ' done' : ''}">${done ? '✨ 분석완료' : '⏳ 분석대기'}</span>`}
+      ${mine ? '' : `<button class="heart${fav ? ' on' : ''}" data-fav="${esc(r.code)}" title="찜">${fav ? '♥' : '♡'}</button>`}
+      ${com ? `<span class="com" title="${esc(com)}">${COMMERCE_BADGE[com]}</span>` : ''}
+      ${r.id ? `<span class="tag label">${hl(labelOf(r), q)}</span>` : ''}
+      ${r.duration != null ? `<span class="dur">${fmtDur(r.duration)}</span>` : ''}
+    </div>
+    <div class="meta">
+      <div class="who"><span class="acct">@${esc(r.account)}</span><span class="date">${fmtDate(r.postedAt)}</span></div>
+      ${stats ? `<div class="stats">${stats}</div>` : ''}
+      <div class="cap" title="${esc(done ? r.analysis.주제 : firstLine(r.caption))}">${done ? hl(r.analysis.주제, q) : (hl(firstLine(r.caption), q) || '<span class="faint">캡션 없음</span>')}</div>
+    </div>
+  </article>`;
+}
+function bindCards(container, items, q, mine = false) {
+  container.querySelectorAll('.card').forEach((el) => {
+    el.addEventListener('click', () => {
+      const it = items.find((x) => x.code === el.dataset.code);
+      if (it) openPanel(it, q, mine);
+    });
+  });
+  container.querySelectorAll('.heart').forEach((b) => {
+    b.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      toggleFav(b.dataset.fav);
+      const on = state.favs.has(b.dataset.fav);
+      b.classList.toggle('on', on); b.textContent = on ? '♥' : '♡';
+      if (state.refsFavOnly) render();
+    });
+  });
+}
+function toggleFav(code) {
+  if (state.favs.has(code)) state.favs.delete(code); else state.favs.add(code);
+  ls('favs', JSON.stringify([...state.favs]));
+}
+
+// ───────────────────────── 상세 팝업 ─────────────────────────
+// 영상은 파일로 받지 않고 인스타그램 공식 임베드로 바로 본다 (인터넷 필요)
+const embedUrl = (r) => `https://www.instagram.com/reel/${encodeURIComponent(r.code)}/embed/`;
+function renderField(v) {
+  if (!v) return '';
+  if (Array.isArray(v)) return `<ul>${v.map((x) => `<li>${esc(String(x))}</li>`).join('')}</ul>`;
+  return `<div class="fld-body">${esc(String(v))}</div>`;
+}
+function insightHtml(r) {
+  const an = r.analysis || {};
+  if (!isAnalyzed(r)) {
+    const running = state.status && state.status.running;
+    if (STATIC) return `<div class="pending-box" id="pendingBox">⏳ 아직 AI 분석 전이에요. 다음 자동 실행(매일 아침 7시) 때 채워져요.</div>`;
+    return `<div class="pending-box" id="pendingBox">⏳ 아직 AI 분석 전이에요.${state.config.geminiKey ? '' : '<br><span class="small">.env 에 GEMINI_API_KEY 를 넣으면 분석할 수 있어요</span>'}<br>
+      <button class="btn primary" id="analyzeOne"${running || !state.config.geminiKey ? ' disabled' : ''}>${running ? '다른 작업이 돌아가는 중…' : '지금 이 릴스 분석하기 (1~2분)'}</button></div>`;
+  }
+  const rel = an.내채널_관련성 || {};
+  return `<div class="insight">
+    <div class="ititle">🧠 왜 터졌나 (AI 종합 인사이트)</div>
+    ${rel.등급 ? `<div class="rel">내 채널 관련성 <b>${esc(rel.등급)}</b> — ${esc(rel.이유 || '')}</div>` : ''}
+    ${an.후킹 ? `<div class="fld"><span class="fld-label">후킹</span>${renderField(an.후킹)}</div>` : ''}
+    ${an.좋은점 ? `<div class="fld"><span class="fld-label">좋은점</span>${renderField(an.좋은점)}</div>` : ''}
+    ${an.차용포인트 ? `<div class="borrow"><span class="fld-label">내 콘텐츠에 이렇게 — 차용포인트</span>${renderField(an.차용포인트)}</div>` : ''}
+    ${an.소구점 ? `<div class="sale"><div class="ititle">💰 어떻게 사고 싶게 만드나 (소구점)</div>${Object.entries(an.소구점).map(([k, v]) => v ? `<div class="fld"><span class="fld-label">${esc(k.replace(/_/g, ' '))}</span>${renderField(v)}</div>` : '').join('')}</div>` : ''}
+    <div class="faint small" style="margin-top:10px">분석 ${fmtDateTime(r.analyzedAt)}${r.hidden ? ' · 관련성 낮음으로 목록에서 숨김' : ''} <button class="btn icon rw" id="reanalyze" title="다시 분석">↻ 다시 분석</button>${r.hidden ? ' <button class="btn icon rw" id="unhide">숨김 해제</button>' : ''}</div>
+  </div>`;
+}
+function openPanel(r, q = '', mine = false) {
+  state.panelItem = r;
+  const panel = $('#panel');
+  const transcriptHtml = r.transcript
+    ? `<div class="text">${hl(r.transcript, q)}</div>`
+    : (mine && !('transcript' in r)
+      ? `<div class="text muted">대본 수집 안 됨 — 내 릴스는 조회 상위 ${state.config.myTranscriptTop || 10}개만 대본을 받아요</div>`
+      : `<div class="text muted">대본 없음${r.transcriptNote ? ' (' + esc(r.transcriptNote) + ')' : ''}</div>`);
+  const an = r.analysis || {};
+  const isComp = (state.comp.handles || []).includes(r.account);
+  const com = commerceOf(r) || '일반';
+  if (mine) {
+    panel.innerHTML = `
+    <button class="btn icon close" id="panelClose" title="닫기 (ESC)">✕</button>
+    <div class="player"><iframe src="${embedUrl(r)}" allow="autoplay; encrypted-media" allowfullscreen scrolling="no" title="내 릴스"></iframe></div>
+    <div class="body">
+      <div class="dm-meta"><span>내 릴스 · @${esc(r.account)}</span>·<b>${fmtViews(r.views)}회</b>·<span>${fmtDate(r.postedAt)}</span></div>
+      <div class="dm-topic">${esc(firstLine(r.caption) || '(캡션 없음)')}</div>
+      <div class="actions">
+        <a class="btn primary" href="${esc(r.url)}" target="_blank" rel="noopener">인스타에서 열기 ↗</a>
+        <button class="btn" id="copyBtn">캡션+대본 복사</button>
+      </div>
+      <h4>상세 정보</h4>
+      <div class="facts">
+        <div><b>${fmtViews(r.views)}</b><span>조회수 ${fmtNum(r.views)}</span></div>
+        <div><b>${r.likes != null ? fmtViews(r.likes) : '-'}</b><span>좋아요 ${fmtNum(r.likes)}</span></div>
+        <div><b>${r.comments != null ? fmtViews(r.comments) : '-'}</b><span>댓글 ${fmtNum(r.comments)}</span></div>
+        <div><b>${r.duration != null ? fmtDur(r.duration) : '-'}</b><span>길이</span></div>
+        <div><b>${fmtDate(r.postedAt) || '-'}</b><span>업로드일</span></div>
+      </div>
+      <h4>캡션</h4>
+      <div class="text">${r.caption ? esc(r.caption) : '<span class="muted">캡션 없음</span>'}</div>
+      <h4>대본</h4>
+      ${transcriptHtml}
+    </div>`;
+    panel.classList.add('open'); $('#overlay').classList.add('open'); panel.setAttribute('aria-hidden', 'false');
+    const body0 = $('#panel .body'); if (body0) body0.scrollTop = 0;
+    $('#panelClose').addEventListener('click', closePanel);
+    $('#copyBtn').addEventListener('click', async () => {
+      const parts = ['내 릴스 · @' + r.account + ' · ' + r.url];
+      if (r.caption) parts.push('[캡션]\n' + r.caption);
+      if (r.transcript) parts.push('[대본]\n' + r.transcript);
+      try { await navigator.clipboard.writeText(parts.join('\n\n')); toast('복사했어요'); } catch { toast('복사 실패'); }
+    });
+    return;
+  }
+  panel.innerHTML = `
+    <button class="btn icon close" id="panelClose" title="닫기 (ESC)">✕</button>
+    <div class="player"><iframe src="${embedUrl(r)}" allow="autoplay; encrypted-media" allowfullscreen scrolling="no" title="${esc(labelOf(r))} 릴스"></iframe></div>
+    <div class="body">
+      <div class="dm-meta"><span>@${esc(r.account)}${r.verified ? ' ✓' : ''}</span>·<b>${fmtViews(r.views)}회</b>·<span>${fmtDate(r.postedAt)}</span>${r.id ? `·<span class="label">${esc(labelOf(r))}</span>` : ''}</div>
+      <div class="dm-topic${isAnalyzed(r) ? '' : ' pending'}">${isAnalyzed(r) ? esc(an.주제) : '(분석 대기 중) ' + esc(firstLine(r.caption))}</div>
+      <div class="actions">
+        <button class="btn toggle rw${isComp ? ' on' : ''}" id="compBtn">${isComp ? '★ 경쟁사 추적 중' : '☆ 경쟁사 등록'}</button>
+        <a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener">인스타에서 열기 ↗</a>
+        <select class="select rw" id="comSel" title="상업성 수동 교정">${['일반', '공구', '광고'].map((n) => `<option${n === com ? ' selected' : ''}>${n}</option>`).join('')}</select>
+        <button class="btn" id="copyBtn">캡션+대본 복사</button>
+      </div>
+      ${insightHtml(r)}
+      <h4>상세 정보</h4>
+      <div class="facts">
+        <div><b>${fmtViews(r.views)}</b><span>조회수 ${fmtNum(r.views)}</span></div>
+        <div><b>${r.likes != null ? fmtViews(r.likes) : '-'}</b><span>좋아요 ${fmtNum(r.likes)}</span></div>
+        <div><b>${r.comments != null ? fmtViews(r.comments) : '-'}</b><span>댓글 ${fmtNum(r.comments)}</span></div>
+        <div><b>${r.duration != null ? fmtDur(r.duration) : '-'}</b><span>길이</span></div>
+        <div><b>${fmtDate(r.postedAt) || '-'}</b><span>업로드일</span></div>
+      </div>
+      <h4>캡션</h4>
+      <div class="text">${r.caption ? hl(r.caption, q) : '<span class="muted">캡션 없음</span>'}</div>
+      <h4>대본</h4>
+      ${transcriptHtml}
+    </div>`;
+  panel.classList.add('open'); $('#overlay').classList.add('open'); panel.setAttribute('aria-hidden', 'false');
+  const body = $('#panel .body'); if (body) body.scrollTop = 0;
+  $('#panelClose').addEventListener('click', closePanel);
+  // 경쟁사 등록/해제
+  $('#compBtn').addEventListener('click', async () => {
+    const b = $('#compBtn');
+    try {
+      const on = (state.comp.handles || []).includes(r.account);
+      const res = on ? await api('/api/competitors/' + encodeURIComponent(r.account), { method: 'DELETE' }) : await api('/api/competitors', { method: 'POST', body: { handle: r.account } });
+      state.comp = res.competitors;
+      const now = (state.comp.handles || []).includes(r.account);
+      b.className = 'btn toggle' + (now ? ' on' : ''); b.textContent = now ? '★ 경쟁사 추적 중' : '☆ 경쟁사 등록';
+      toast(now ? '@' + r.account + ' 을 경쟁사로 등록했어요. 다음 수집부터 비교에 들어가요' : '경쟁사에서 뺐어요');
+    } catch (e) { toast(e.message); }
+  });
+  // 상업성 수동 교정
+  $('#comSel').addEventListener('change', async (e) => {
+    try { const u = await api('/api/refs/' + encodeURIComponent(r.code) + '/commerce', { method: 'POST', body: { value: e.target.value } }); Object.assign(r, u); toast('상업성을 ' + e.target.value + ' 으로 저장했어요'); render(); }
+    catch (err) { toast(err.message); }
+  });
+  const runOne = async () => {
+    try { await api('/api/analyze', { method: 'POST', body: { code: r.code } }); toast('분석을 시작했어요. 1~2분 걸려요'); state.watchCode = r.code; startPolling(); const pb = $('#pendingBox'); if (pb) pb.innerHTML = '⏳ 분석 중… 끝나면 여기에 바로 채워져요'; }
+    catch (e) { toast(e.message); }
+  };
+  const a1 = $('#analyzeOne'); if (a1) a1.addEventListener('click', runOne);
+  const a2 = $('#reanalyze'); if (a2) a2.addEventListener('click', runOne);
+  const uh = $('#unhide'); if (uh) uh.addEventListener('click', async () => { try { const u = await api('/api/refs/' + encodeURIComponent(r.code) + '/hidden', { method: 'POST', body: { value: false } }); Object.assign(r, u); render(); openPanel(r, q); } catch (e) { toast(e.message); } });
+  $('#copyBtn').addEventListener('click', async () => {
+    const parts = [];
+    const head = [labelOf(r), '@' + r.account, r.url].filter(Boolean).join(' · ');
+    parts.push(head);
+    if (r.caption) parts.push('[캡션]\n' + r.caption);
+    if (r.transcript) parts.push('[대본]\n' + r.transcript);
+    const text = parts.join('\n\n');
+    try { await navigator.clipboard.writeText(text); toast('복사했어요'); }
+    catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('복사했어요'); }
+  });
+}
+function closePanel() {
+  state.panelItem = null;
+  const panel = $('#panel');
+  panel.classList.remove('open'); $('#overlay').classList.remove('open'); panel.setAttribute('aria-hidden', 'true');
+  setTimeout(() => { if (!panel.classList.contains('open')) panel.innerHTML = ''; }, 200); // 임베드 재생을 확실히 멈춘다
+}
+$('#overlay').addEventListener('click', closePanel);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
+
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1600); }
+
+// ───────────────────────── 탭 1. 레퍼런스 ─────────────────────────
+function renderRefs(page) {
+  if (!state.refs.length) {
+    page.innerHTML = `<div class="empty"><p>아직 수집된 릴스가 없어요.<br>설정에서 계정을 추가하고 수집을 실행해 주세요.</p><button class="btn primary" id="goSettings">설정으로 가기</button></div>`;
+    $('#goSettings').addEventListener('click', () => showTab('settings'));
+    return;
+  }
+  const qRaw = state.refsQuery.trim();
+  const q = qRaw.toLowerCase();
+  let items = state.refs.slice();
+  const hiddenCount = items.filter((r) => r.hidden).length;
+  if (!state.showHidden) items = items.filter((r) => !r.hidden);
+  if (state.refsFavOnly) items = items.filter((r) => state.favs.has(r.code));
+  if (state.refsCommerce !== 'all') items = items.filter((r) => (commerceOf(r) || '일반') === state.refsCommerce);
+  if (q) items = items.filter((r) => (r.caption || '').toLowerCase().includes(q) || (r.transcript || '').toLowerCase().includes(q) || labelOf(r).toLowerCase().includes(q) || (r.account || '').toLowerCase().includes(q) || (r.analysis && r.analysis.주제 || '').toLowerCase().includes(q));
+  items.sort(state.refsSort === 'newest'
+    ? (a, b) => String(b.postedAt || '').localeCompare(String(a.postedAt || ''))
+    : (a, b) => (b.views || 0) - (a.views || 0));
+
+  page.innerHTML = `
+    <div class="toolbar">
+      <div class="title">레퍼런스<small>· ${items.length}개${items.length !== state.refs.length ? ' / ' + state.refs.length : ''}</small></div>
+      <input class="input" id="q" type="search" placeholder="주제·캡션·대본·라벨 검색 (예: R-003)" value="${esc(state.refsQuery)}">
+      <div class="right">
+        <select class="select" id="comFilter" title="상업성">
+          ${[['all', '전체'], ['일반', '일반'], ['공구', '🛒 공구'], ['광고', '📢 광고']].map(([k, l]) => `<option value="${k}"${state.refsCommerce === k ? ' selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <select class="select" id="sort">
+          <option value="views"${state.refsSort === 'views' ? ' selected' : ''}>조회수 높은순</option>
+          <option value="newest"${state.refsSort === 'newest' ? ' selected' : ''}>최신순</option>
+        </select>
+        <button class="btn toggle${state.refsFavOnly ? ' on' : ''}" id="favOnly" title="찜한 릴스만 보기">♥ 찜</button>
+        ${hiddenCount ? `<button class="btn toggle${state.showHidden ? ' on' : ''}" id="showHidden" title="AI가 내 채널 관련성 낮음으로 판정해 숨긴 릴스">숨김 ${hiddenCount}</button>` : ''}
+      </div>
+    </div>
+    ${items.length ? `<div class="grid" id="grid">${items.map((r) => cardHtml(r, qRaw)).join('')}</div>`
+      : `<div class="empty"><p>${state.refsFavOnly && !q ? '찜한 릴스가 없어요' : '검색 결과가 없어요'}</p></div>`}`;
+
+  const qEl = $('#q');
+  qEl.addEventListener('input', () => { state.refsQuery = qEl.value; const pos = qEl.selectionStart; render(); const el = $('#q'); el.focus(); try { el.setSelectionRange(pos, pos); } catch {} });
+  $('#sort').addEventListener('change', (e) => { state.refsSort = e.target.value; render(); });
+  $('#comFilter').addEventListener('change', (e) => { state.refsCommerce = e.target.value; render(); });
+  $('#favOnly').addEventListener('click', () => { state.refsFavOnly = !state.refsFavOnly; render(); });
+  const sh = $('#showHidden'); if (sh) sh.addEventListener('click', () => { state.showHidden = !state.showHidden; render(); });
+  const grid = $('#grid');
+  if (grid) bindCards(grid, items, qRaw);
+}
+
+// ───────────────────────── 탭 2. 경쟁사 ─────────────────────────
+const DAY = 86400000;
+const LINE_COLORS = ['#3b6fd6', '#d8446e', '#2a9d8f', '#e0a020', '#8a5cd6', '#8d8d8d', '#c46a2c', '#5b8c5a'];
+
+// 비교 대상 = 내 계정(있으면) + 경쟁사 목록
+function compRows() {
+  const me = state.comp.myHandle || '';
+  const rows = [];
+  if (me) rows.push({ handle: me, isMe: true });
+  for (const h of state.comp.handles || []) if (h !== me) rows.push({ handle: h, isMe: false });
+  return rows;
+}
+const rowName = (r) => (r.isMe ? '나 · ' : '') + r.handle;
+const reelsOf = (h) => Object.values(state.comp.reels?.[h] || {});
+const snapsOf = (h) => (state.comp.snapshots?.[h] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+
+// 업로드 수: 최근 N일 안에 올라온 릴스 개수. 받아 둔 목록보다 창이 넓으면 "이상"으로 표시
+function uploads(h, days) {
+  const list = reelsOf(h).filter((r) => r.postedAt);
+  if (!list.length) return { v: null };
+  const since = Date.now() - days * DAY;
+  const n = list.filter((r) => new Date(r.postedAt).getTime() >= since).length;
+  const oldest = Math.min(...list.map((r) => new Date(r.postedAt).getTime()));
+  return { v: n, partial: oldest > since };
+}
+// 평균 조회수: 최근 N개(0이면 전체)
+function avgViews(h, n) {
+  const list = reelsOf(h).filter((r) => typeof r.views === 'number').sort((a, b) => String(b.postedAt || '').localeCompare(String(a.postedAt || '')));
+  const pick = n ? list.slice(0, n) : list;
+  if (!pick.length) return { v: null };
+  return { v: pick.reduce((s, r) => s + r.views, 0) / pick.length, count: pick.length };
+}
+// 팔로워 증감률: 최신 스냅샷 vs N일 전 스냅샷 (없으면 가장 오래된 것)
+function growth(h, days) {
+  const s = snapsOf(h);
+  if (s.length < 2) return { v: null, reason: s.length ? '쌓는 중' : '데이터 없음' };
+  const latest = s[s.length - 1];
+  const target = new Date(latest.date).getTime() - days * DAY;
+  let base = null;
+  for (const x of s) if (new Date(x.date).getTime() <= target) base = x;
+  const partial = !base;
+  if (!base) base = s[0];
+  if (!base.followers) return { v: null, reason: '데이터 없음' };
+  return { v: (latest.followers - base.followers) / base.followers * 100, abs: latest.followers - base.followers, partial, baseDate: base.date, latest: latest.followers };
+}
+
+function rankBlock(key, title, opts, compute, fmtVal, { signed = false } = {}) {
+  const rows = compRows().map((r) => ({ ...r, ...compute(r.handle) }));
+  const valid = rows.filter((r) => r.v != null).sort((a, b) => b.v - a.v);
+  const rest = rows.filter((r) => r.v == null);
+  const ordered = [...valid, ...rest];
+  const meIdx = valid.findIndex((r) => r.isMe);
+  const max = Math.max(...valid.map((r) => Math.abs(r.v)), 0) || 1;
+  const cur = state.period[key];
+  return `<section>
+    <div class="head">
+      <h3>${title}${meIdx >= 0 ? `<span class="pill">내 ${meIdx + 1}위/${valid.length}</span>` : ''}</h3>
+      <div class="seg" data-seg="${key}">${opts.map((o) => `<button data-v="${o.v}" class="${o.v === cur ? 'on' : ''}">${o.label}</button>`).join('')}</div>
+    </div>
+    ${ordered.map((r, i) => {
+      const has = r.v != null;
+      let bar;
+      if (!has) bar = `<div class="bar"></div>`;
+      else if (signed) {
+        const w = Math.abs(r.v) / max * 50;
+        bar = `<div class="bar zero"><i class="${r.v < 0 ? 'negv' : ''}" style="${r.v >= 0 ? 'left:50%' : 'right:50%'};width:${w.toFixed(1)}%"></i></div>`;
+      } else bar = `<div class="bar"><i style="left:0;width:${(r.v / max * 100).toFixed(1)}%"></i></div>`;
+      const val = has ? fmtVal(r) : `<span class="faint small">${esc(r.reason || '데이터 없음')}</span>`;
+      return `<div class="rank${r.isMe ? ' me' : ''}"><span class="n">${has ? i + 1 : '-'}</span><span class="h" title="@${esc(r.handle)}">${esc(rowName(r))}</span>${bar}<span class="v${has && signed && r.v < 0 ? ' neg' : ''}">${val}</span></div>`;
+    }).join('')}
+  </section>`;
+}
+
+function trendChart() {
+  const rows = compRows();
+  const series = rows.map((r, i) => {
+    const s = snapsOf(r.handle);
+    const first = s[0];
+    return { ...r, color: r.isMe ? '#111' : LINE_COLORS[i % LINE_COLORS.length], pts: first ? s.map((x) => ({ date: x.date, y: x.followers - first.followers, abs: x.followers })) : [] };
+  }).filter((s) => s.pts.length);
+  if (!series.length) return `<div class="empty" style="padding:50px 10px"><p>아직 스냅샷이 없어요. 수집을 실행하면 오늘부터 쌓여요.</p></div>`;
+  const dates = [...new Set(series.flatMap((s) => s.pts.map((p) => p.date)))].sort();
+  const single = dates.length === 1;
+  const W = 960, H = 300, L = 62, R = 16, T = 14, B = 34;
+  const ys = series.flatMap((s) => s.pts.map((p) => p.y));
+  let yMin = Math.min(0, ...ys), yMax = Math.max(0, ...ys);
+  if (yMax === yMin) { yMax += 10; yMin -= 10; }
+  const pad = (yMax - yMin) * 0.08; yMin -= pad; yMax += pad;
+  const x = (d) => single ? L + (W - L - R) / 2 : L + (dates.indexOf(d) / (dates.length - 1)) * (W - L - R);
+  const y = (v) => T + (yMax - v) / (yMax - yMin) * (H - T - B);
+  // 눈금 5개
+  const ticks = []; const step = niceStep((yMax - yMin) / 5);
+  for (let v = Math.ceil(yMin / step) * step; v <= yMax; v += step) ticks.push(v);
+  const xt = dates.length <= 12 ? dates : dates.filter((_, i) => i % Math.ceil(dates.length / 11) === 0 || i === dates.length - 1);
+  const lines = series.map((s) => {
+    const d = s.pts.map((p, i) => (i ? 'L' : 'M') + x(p.date).toFixed(1) + ' ' + y(p.y).toFixed(1)).join(' ');
+    const dots = s.pts.map((p) => `<circle cx="${x(p.date).toFixed(1)}" cy="${y(p.y).toFixed(1)}" r="${s.pts.length > 40 ? 1.8 : 3}" fill="#fff" stroke="${s.color}" stroke-width="1.5"><title>${esc(rowName(s))} · ${p.date} · 팔로워 ${fmtNum(p.abs)} (${fmtSigned(p.y)})</title></circle>`).join('');
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.isMe ? 2.4 : 1.8}"/>${dots}`;
+  }).join('');
+  const legend = series.map((s) => { const last = s.pts[s.pts.length - 1].y; return `<span><i style="background:${s.color}"></i>${esc(rowName(s))}<b class="${last < 0 ? 'neg' : ''}">${fmtSigned(last)}</b></span>`; }).join('');
+  return `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="경쟁사 팔로워 추이">
+    ${ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="${v === 0 ? '#bbb' : '#eee'}"/><text x="${L - 8}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#999">${fmtSigned(v)}</text>`).join('')}
+    ${xt.map((d) => `<text x="${x(d).toFixed(1)}" y="${H - 12}" text-anchor="middle" font-size="11" fill="#999">${fmtMD(d)}</text>`).join('')}
+    ${lines}
+  </svg>
+  <div class="legend">${legend}</div>
+  <div class="note">${single ? '첫 스냅샷이에요. 수집을 한 번 더 하면 선이 그려져요.' : `${dates[0]} 부터 ${dates[dates.length - 1]} 까지 ${dates.length}일치. 첫 스냅샷을 0으로 두고 늘어난 수를 그려요.`}</div>`;
+}
+function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw || 1))); const m = raw / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
+
+// ── 내 계정 프로필 카드 + 팔로워 추이(절대값) ──
+function myProfileCard(me) {
+  const p = state.comp.profiles?.[me];
+  const reels = reelsOf(me).filter((r) => typeof r.views === 'number');
+  const total = reels.reduce((s, r) => s + r.views, 0);
+  const best = reels.length ? Math.max(...reels.map((r) => r.views)) : null;
+  const snaps = snapsOf(me);
+  const latest = snaps[snaps.length - 1];
+  const followers = latest ? latest.followers : (p && p.followers);
+  if (!p && !latest) return `<div class="box"><div class="empty" style="padding:40px 10px"><p>@${esc(me)} 의 프로필이 아직 없어요.<br>설정에서 수집을 실행하면 채워져요.</p></div></div>`;
+  const link = p && p.externalUrl ? p.externalUrl : null;
+  const linkText = link ? link.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
+  return `<div class="box"><div class="profile">
+    ${p && p.avatar ? `<img class="avatar" src="${esc(p.avatar)}" alt="">` : `<div class="avatar none">사진 없음</div>`}
+    <div style="min-width:0">
+      <div class="handle">${esc(me)}${p && p.verified ? ' <span class="muted small" title="인증 계정">✓</span>' : ''}</div>
+      <div class="fullname">${esc(p && p.fullName || '')}</div>
+      <div class="nums">
+        <div><b>${fmtNum(p && p.posts)}</b><span>게시물</span></div>
+        <div><b>${fmtNum(followers)}</b><span>팔로워</span></div>
+        <div><b>${fmtNum(p && p.following)}</b><span>팔로우</span></div>
+      </div>
+      ${p && p.bio ? `<div class="bio">${esc(p.bio)}</div>` : ''}
+      ${link ? `<a class="link" href="${esc(link)}" target="_blank" rel="noopener">🔗 ${esc(linkText)}</a>` : ''}
+    </div>
+    <div class="sumline">총 조회수 <b>${reels.length ? fmtViews(total) : '-'}</b> · 역대 최고 <b>${best != null ? fmtViews(best) : '-'}</b> · 수집 게시물 <b>${fmtNum(reels.length)}</b>개${reels.length ? ' <span class="faint">(받아 둔 릴스 기준)</span>' : ''}</div>
+  </div></div>`;
+}
+// 내 릴스 카드 — 가로 한 행, 옆으로 넘기며 본다. 정렬은 조회수순/최신순
+const myReelList = (me) => Object.entries(state.comp.reels?.[me] || {}).map(([code, v]) => ({ code, ...v, account: me, url: `https://www.instagram.com/reel/${code}/` })).filter((r) => typeof r.views === 'number');
+function myReelsRow(me) {
+  const list = myReelList(me);
+  if (!list.length) return `<div class="box"><h2>내 릴스</h2><div class="empty" style="padding:30px 10px"><p>아직 내 릴스가 없어요. 수집을 실행하면 채워져요.</p></div></div>`;
+  list.sort(state.mineSort === 'newest' ? (a, b) => String(b.postedAt || '').localeCompare(String(a.postedAt || '')) : (a, b) => b.views - a.views);
+  return `<div class="box">
+    <div class="head-row"><h2>내 릴스 <small class="muted" style="font-weight:500">· ${list.length}개 · 옆으로 넘겨 보세요</small></h2>
+      <select class="select" id="mineSort"><option value="views"${state.mineSort === 'views' ? ' selected' : ''}>조회수순</option><option value="newest"${state.mineSort === 'newest' ? ' selected' : ''}>최신순</option></select></div>
+    <div class="hrow" id="mineRow">${list.map((r) => cardHtml(r, '', true)).join('')}</div>
+  </div>`;
+}
+function myTrendChart(me) {
+  const s = snapsOf(me);
+  if (!s.length) return `<div class="box"><h2>추이</h2><div class="empty" style="padding:40px 10px"><p>아직 스냅샷이 없어요. 수집을 실행하면 오늘부터 쌓여요.</p></div></div>`;
+  const first = s[0], latest = s[s.length - 1];
+  const delta = latest.followers - first.followers;
+  const pct = first.followers ? (delta / first.followers * 100) : 0;
+  const head = `<div class="trend-head">내 계정 팔로워 <b>${fmtNum(latest.followers)}명</b><span class="delta${delta < 0 ? ' neg' : ''}">${s.length > 1 ? fmtSigned(delta) : ''}</span>${s.length > 1 ? ` 기간 증감 · 전체의 ${Math.abs(pct).toFixed(1)}% ${delta < 0 ? '감소' : '증가'} (${fmtMD(first.date)} 부터)` : ' · 첫 스냅샷이에요. 내일부터 선이 그려져요'}</div>`;
+  const W = 960, H = 260, L = 64, R = 16, T = 14, B = 34;
+  const vals = s.map((x) => x.followers);
+  let yMin = Math.min(...vals), yMax = Math.max(...vals);
+  const span = Math.max(yMax - yMin, Math.max(20, Math.round(yMax * 0.01)));
+  yMin -= span * 0.5; yMax += span * 0.5;
+  const single = s.length === 1;
+  const x = (i) => single ? L + (W - L - R) / 2 : L + i / (s.length - 1) * (W - L - R);
+  const y = (v) => T + (yMax - v) / (yMax - yMin) * (H - T - B);
+  const ticks = []; const step = niceStep((yMax - yMin) / 4);
+  for (let v = Math.ceil(yMin / step) * step; v <= yMax; v += step) ticks.push(v);
+  const xi = s.length <= 12 ? s.map((_, i) => i) : s.map((_, i) => i).filter((i) => i % Math.ceil(s.length / 11) === 0 || i === s.length - 1);
+  const d = s.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.followers).toFixed(1)).join(' ');
+  const dots = s.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.followers).toFixed(1)}" r="${s.length > 40 ? 2.2 : 3.5}" fill="#fff" stroke="#111" stroke-width="1.8"><title>${p.date} · 팔로워 ${fmtNum(p.followers)}${i ? ' (' + fmtSigned(p.followers - s[i - 1].followers) + ')' : ''}</title></circle>`).join('');
+  return `<div class="box"><h2>추이</h2>${head}
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="내 계정 팔로워 추이">
+      ${ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="#eee"/><text x="${L - 8}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#999">${fmtNum(Math.round(v))}</text>`).join('')}
+      ${xi.map((i) => `<text x="${x(i).toFixed(1)}" y="${H - 12}" text-anchor="middle" font-size="11" fill="#999">${fmtMD(s[i].date)}</text>`).join('')}
+      <path d="${d}" fill="none" stroke="#111" stroke-width="2"/>${dots}
+    </svg></div>`;
+}
+
+function renderCompetitors(page) {
+  const me = state.comp.myHandle || '';
+  const rows = compRows();
+  const hasData = rows.some((r) => snapsOf(r.handle).length || reelsOf(r.handle).length);
+  const meBar = STATIC ? `<div class="mebar"><span class="small muted">내 계정</span><b>${me ? '@' + esc(me) : '미입력'}</b></div>`
+    : `<div class="mebar"><span class="small muted">내 계정</span><input class="input" id="myHandle" placeholder="@ 없이 아이디" value="${esc(me)}"><button class="btn" id="saveHandle">저장</button></div>`;
+  page.innerHTML = `
+    <div class="toolbar-flex">
+      <div class="title">경쟁사<small>· ${rows.length}개 계정${me ? '' : ' · 내 계정 미입력'}</small></div>
+      ${meBar}
+    </div>
+    <div class="msg" id="handleMsg"></div>
+    ${me ? `<div class="me-wrap">${myProfileCard(me)}${myTrendChart(me)}${myReelsRow(me)}</div>` : `<div class="note" style="margin:0 0 16px">오른쪽 위에 내 계정을 넣으면 여기에 내 프로필·팔로워 추이·내 릴스가 뜨고, 아래 순위표에 "나" 행이 들어가요.</div>`}
+    ${!rows.length ? `<div class="empty"><p>아직 경쟁사가 없어요.<br>설정에서 경쟁사 계정을 추가하고 수집을 실행해 주세요.</p><button class="btn primary" id="goSettings">설정으로 가기</button></div>`
+    : !hasData ? `<div class="empty"><p>경쟁사 ${rows.length}개가 등록돼 있지만 아직 데이터가 없어요.<br>설정에서 수집을 실행해 주세요.</p><button class="btn primary" id="goSettings">설정으로 가기</button></div>`
+    : `<div class="comp-wrap">
+        <div class="box">
+          <h2>경쟁사 벤치마크</h2>
+          <p class="desc">업로드 수와 평균 조회수는 받아 둔 릴스 목록 기준, 팔로워 증감률은 스냅샷 기준이에요.</p>
+          <div class="bench" id="bench">
+            ${rankBlock('uploads', '업로드 수', [{ v: 7, label: '주간' }, { v: 30, label: '월간' }, { v: 90, label: '3개월' }, { v: 180, label: '6개월' }], (h) => uploads(h, state.period.uploads), (r) => fmtNum(r.v) + '개' + (r.partial ? '+' : ''))}
+            ${rankBlock('views', '평균 조회수', [{ v: 10, label: '최근 10' }, { v: 20, label: '최근 20' }, { v: 30, label: '최근 30' }, { v: 0, label: '전체' }], (h) => avgViews(h, state.period.views), (r) => fmtViews(r.v))}
+            ${rankBlock('growth', '팔로워 증감률', [{ v: 7, label: '주간' }, { v: 30, label: '월간' }, { v: 90, label: '3개월' }], (h) => growth(h, state.period.growth), (r) => (r.v > 0 ? '+' : '') + r.v.toFixed(2) + '%' + (r.partial ? '<span class="faint small" title="' + r.baseDate + ' 부터"> *</span>' : ''), { signed: true })}
+          </div>
+          <div class="note">"+"는 받아 둔 목록보다 기간이 넓어 실제는 더 많을 수 있다는 뜻, "*"는 스냅샷이 기간보다 짧아 첫 스냅샷부터 계산했다는 뜻이에요.</div>
+        </div>
+        <div class="box">
+          <h2>경쟁사 팔로워 추이</h2>
+          <p class="desc">스냅샷 기반. 수집할 때마다 하루 한 장씩 쌓여요${STATIC ? ' (클라우드에서 매일 아침 자동)' : state.config.autoSnapshot ? ' (서버가 켜져 있으면 매일 자동)' : ''}.</p>
+          ${trendChart()}
+        </div>
+      </div>`}`;
+
+  const go = $('#goSettings'); if (go) go.addEventListener('click', () => showTab('settings'));
+  const ms = $('#mineSort'); if (ms) ms.addEventListener('change', (e) => { state.mineSort = e.target.value; render(); });
+  const mr = $('#mineRow'); if (mr) bindCards(mr, myReelList(me), '', true);
+  page.querySelectorAll('.seg').forEach((seg) => seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { state.period[seg.dataset.seg] = Number(b.dataset.v); render(); })));
+  const save = async () => {
+    const msg = $('#handleMsg');
+    try {
+      state.config = await api('/api/config', { method: 'POST', body: { myHandle: $('#myHandle').value } });
+      state.comp = await api('/api/competitors');
+      render();
+      const m2 = $('#handleMsg'); m2.className = 'msg okk'; m2.textContent = state.config.myHandle ? '@' + state.config.myHandle + ' 로 저장했어요. 다음 수집부터 "나" 행에 들어가요.' : '내 계정을 비웠어요.';
+    } catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+  };
+  const sh = $('#saveHandle'); if (sh) sh.addEventListener('click', save);
+  const mh = $('#myHandle'); if (mh) mh.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
+}
+
+// ───────────────────────── 탭 3. 설정 ─────────────────────────
+function renderSettingsStatic(page) {
+  const cfg = state.config, st = state.status || {}, s = st.summary || {};
+  const list = (arr, empty) => arr.length ? `<ul class="plain">${arr.map((x) => `<li>${x}</li>`).join('')}</ul>` : `<p class="muted">${empty}</p>`;
+  page.innerHTML = `
+    <div class="settings">
+      <section class="section">
+        <h2>☁️ 클라우드 화면 (보기 전용)</h2>
+        <p class="desc">이 화면은 매일 아침 7시 GitHub 에서 자동으로 수집·분석한 결과를 보여줘요. 설정을 바꾸거나 지금 바로 수집하려면 내 컴퓨터의 수집기 폴더에서 Claude Code 에게 말하면 돼요. 예: "경쟁사에 OO 추가해줘", "지금 수집 돌려줘".</p>
+        <p class="desc">마지막 수집: <b>${fmtDateTime(cfg.lastRunAt)}</b> · 마지막 AI 분석: <b>${fmtDateTime(cfg.lastAnalyzeAt)}</b> · 마지막 스냅샷: <b>${cfg.lastSnapshotDate || '-'}</b></p>
+        ${s && typeof s.creditsRemaining === 'number' ? `<p class="desc">남은 크레딧 ${fmtNum(s.creditsRemaining)}${s.newRefs != null ? ' · 마지막 수집에서 새 레퍼런스 ' + fmtNum(s.newRefs) + '개' : ''}</p>` : ''}
+      </section>
+      <section class="section">
+        <h2>레퍼런스 계정 · ${state.accounts.length}개</h2>
+        ${list(state.accounts.map((a) => '@' + esc(a.handle) + ' <span class="muted small">' + fmtNum(a.count) + '개</span>'), '아직 없어요')}
+        <p class="desc">기준 조회수 ${fmtNum(cfg.minViews)}회 이상만 카드로 들어와요.</p>
+      </section>
+      <section class="section">
+        <h2>경쟁사 · ${(state.comp.handles || []).length}개</h2>
+        ${list((state.comp.handles || []).map((h) => '@' + esc(h)), '아직 없어요')}
+        <p class="desc">내 계정: ${cfg.myHandle ? '@' + esc(cfg.myHandle) : '미입력'} · 내 상위 ${cfg.myTranscriptTop}개 릴스 대본 ${cfg.myTranscripts ? '받음' : '안 받음'}</p>
+      </section>
+      <section class="section">
+        <h2>채널 정체성</h2>
+        ${cfg.channel.brief ? `<div class="text">${esc(cfg.channel.brief)}</div>` : '<p class="muted">아직 없어요</p>'}
+        ${cfg.channel.pillars.length ? `<p class="desc">기둥: ${cfg.channel.pillars.map(esc).join(' · ')}</p>` : ''}
+        ${cfg.failedCodes.length ? `<p class="desc muted">분석 3회 실패로 제외된 릴스 ${cfg.failedCodes.length}개</p>` : ''}
+      </section>
+    </div>`;
+}
+function renderSettings(page) {
+  if (STATIC) return renderSettingsStatic(page);
+  const cfg = state.config;
+  const st = state.status || {};
+  const running = st.running;
+  page.innerHTML = `
+    <div class="settings">
+      <section class="section">
+        <h2>수집 실행</h2>
+        <p class="desc">레퍼런스 계정의 새 릴스를 확인하고, 경쟁사 팔로워 스냅샷을 찍어요. 마지막 수집: <b id="lastRun">${fmtDateTime(st.lastRunAt)}</b></p>
+        <button class="btn primary big" id="collectBtn"${running ? ' disabled' : ''}>${running ? (st.kind === 'snapshot' ? '자동 스냅샷 중…' : '수집 중…') : '수집 시작'}</button>
+        <div class="logbox" id="logbox"></div>
+        <div class="summary" id="summary"></div>
+      </section>
+
+      <section class="section chan">
+        <h2>AI 분석 — 내 채널 정체성</h2>
+        <p class="desc">분석의 "차용포인트"가 이 정체성에 맞춰 나와요. 비워 두면 일반론이 됩니다. 저장하면 다음 분석부터 반영돼요.</p>
+        <textarea id="chanBrief" placeholder="예: 홍성준이 운영하는 AI 교육·튜토리얼 채널. 타깃은 AI를 배우고 싶은 초급~중급 일반인. 검증된 강점은 … 지양하는 것은 …">${esc(cfg.channel && cfg.channel.brief || '')}</textarea>
+        <div class="row" style="margin-top:8px"><input class="input" id="chanPillars" placeholder="콘텐츠 기둥 (쉼표로 구분) 예: AI 초급자용, 흥미유발, 삶에 AI 적용" value="${esc((cfg.channel && cfg.channel.pillars || []).join(', '))}" style="max-width:520px"><button class="btn" id="saveChan">저장</button><button class="btn primary" id="autoBrief"${cfg.geminiKey ? '' : ' disabled'} title="내 릴스·프로필을 AI가 읽고 정체성 초안을 써 줘요">🪄 자동 분석</button></div>
+        <div class="msg" id="chanMsg">${cfg.geminiKey ? '' : '자동 분석은 .env 에 GEMINI_API_KEY 가 있어야 해요'}</div>
+      </section>
+
+      <section class="section">
+        <h2>AI 분석 실행</h2>
+        <p class="desc">미분석 릴스를 조회수 높은 순으로 최대 ${cfg.analyzeMax || 20}개 분석해요 (릴스당 1~2분, Gemini 무료 키). 마지막 분석: <b id="lastAnalyze">${fmtDateTime(cfg.lastAnalyzeAt)}</b>${cfg.geminiKey ? '' : ' · <span class="neg">.env 에 GEMINI_API_KEY 가 없어요</span>'}</p>
+        <div class="row"><button class="btn primary" id="analyzeBtn"${running || !cfg.geminiKey ? ' disabled' : ''}>분석 시작</button>
+          <label class="check"><input type="checkbox" id="autoAnalyze"${cfg.autoAnalyze ? ' checked' : ''}> 수집이 끝나면 자동으로 이어서 분석</label>
+          ${cfg.failedCodes && cfg.failedCodes.length ? `<button class="btn" id="resetFails" title="${esc(cfg.failedCodes.join(', '))}">실패 기록 초기화 (${cfg.failedCodes.length})</button>` : ''}
+        </div>
+        <div class="msg" id="anaMsg"></div>
+        <div class="summary" id="anaSummary"></div>
+      </section>
+
+      <section class="section">
+        <h2>레퍼런스 계정</h2>
+        <p class="desc">터진 릴스를 모을 계정. 아이디를 넣고 엔터. 삭제해도 이미 수집된 릴스는 남아요.</p>
+        <div class="row"><input class="input" id="newHandle" placeholder="예: some_creator 또는 instagram.com/some_creator"><button class="btn" id="addHandle">추가</button></div>
+        <div class="msg" id="accMsg"></div>
+        <div class="list" id="accList"></div>
+      </section>
+
+      <section class="section">
+        <h2>경쟁사 계정</h2>
+        <p class="desc">업로드 수·평균 조회수·팔로워 추이를 비교할 계정. 레퍼런스 계정과 겹쳐도 돼요 (겹치면 릴스 목록을 재사용해 크레딧을 아껴요). 내 계정은 경쟁사 탭에서 넣어요.</p>
+        <div class="row"><input class="input" id="newComp" placeholder="예: reels_mon01"><button class="btn" id="addComp">추가</button></div>
+        <div class="msg" id="compMsg"></div>
+        <div class="list" id="compList"></div>
+        <label class="check" style="margin-top:12px"><input type="checkbox" id="autoSnap"${cfg.autoSnapshot ? ' checked' : ''}> 서버가 켜져 있으면 하루 한 번 팔로워 스냅샷 자동 (경쟁사+내 계정 하나당 1크레딧)</label>
+        <label class="check" style="margin-top:8px"><input type="checkbox" id="myTranscripts"${cfg.myTranscripts ? ' checked' : ''}> 내 계정 상위 ${cfg.myTranscriptTop || 10}개 릴스의 대본도 수집 (기획 스킬 재료. 처음 한 번 ${cfg.myTranscriptTop || 10}크레딧, 그 뒤엔 새로 상위에 든 것만)</label>
+        <div class="msg" id="mtMsg"></div>
+        <div class="msg" id="autoMsg">${cfg.lastSnapshotDate ? '마지막 스냅샷 ' + esc(cfg.lastSnapshotDate) : ''}</div>
+      </section>
+
+      <section class="section">
+        <h2>기준 조회수</h2>
+        <p class="desc">이 숫자 이상인 릴스만 레퍼런스로 채택해요. 다음 수집부터 적용돼요.</p>
+        <div class="row"><input class="input" id="minViews" inputmode="numeric" value="${fmtNum(cfg.minViews)}"><button class="btn" id="saveMin">저장</button></div>
+        <div class="msg" id="minMsg"></div>
+      </section>
+    </div>`;
+
+  // 수집
+  $('#collectBtn').addEventListener('click', async () => {
+    const btn = $('#collectBtn');
+    btn.disabled = true; btn.textContent = '수집 중…';
+    $('#logbox').textContent = ''; $('#summary').innerHTML = '';
+    try { await api('/api/collect', { method: 'POST' }); startPolling(); }
+    catch (e) { btn.disabled = false; btn.textContent = '수집 시작'; toast(e.message); }
+  });
+
+  // 채널 정체성
+  $('#saveChan').addEventListener('click', async () => {
+    const msg = $('#chanMsg');
+    try { state.config = await api('/api/config', { method: 'POST', body: { channel: { brief: $('#chanBrief').value, pillars: $('#chanPillars').value } } }); msg.className = 'msg okk'; msg.textContent = '저장했어요. 기둥 ' + state.config.channel.pillars.length + '개. 다음 분석부터 반영돼요.'; }
+    catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+  });
+  // 채널 정체성 자동 분석 — 내 릴스·프로필을 Gemini 가 읽고 초안을 써 준다. 사람이 검토 후 저장
+  $('#autoBrief').addEventListener('click', async () => {
+    const b = $('#autoBrief'), msg = $('#chanMsg');
+    b.disabled = true; b.textContent = '분석 중… (30초 안팎)'; msg.className = 'msg'; msg.textContent = '';
+    try {
+      const r = await api('/api/channel-brief', { method: 'POST', body: {} });
+      $('#chanBrief').value = r.brief;
+      msg.className = 'msg okk'; msg.textContent = `내 릴스 ${r.posts}개와 프로필로 초안을 썼어요. 읽어 보고 고친 뒤 "저장"을 눌러야 반영돼요.`;
+      $('#chanBrief').focus();
+    } catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+    finally { b.disabled = false; b.textContent = '🪄 자동 분석'; }
+  });
+  // AI 분석
+  $('#analyzeBtn').addEventListener('click', async () => {
+    const btn = $('#analyzeBtn');
+    btn.disabled = true; btn.textContent = '분석 중…';
+    $('#logbox').textContent = ''; $('#anaSummary').innerHTML = '';
+    try { await api('/api/analyze', { method: 'POST', body: {} }); startPolling(); }
+    catch (e) { btn.disabled = false; btn.textContent = '분석 시작'; toast(e.message); }
+  });
+  $('#autoAnalyze').addEventListener('change', async (e) => {
+    const msg = $('#anaMsg');
+    try { state.config = await api('/api/config', { method: 'POST', body: { autoAnalyze: e.target.checked } }); msg.className = 'msg okk'; msg.textContent = state.config.autoAnalyze ? '수집 뒤 자동 분석을 켰어요' : '자동 분석을 껐어요. 분석 시작 버튼으로만 돌아요'; }
+    catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+  });
+  const rf = $('#resetFails'); if (rf) rf.addEventListener('click', async () => { try { state.config = await api('/api/config', { method: 'POST', body: { resetFails: true } }); render(); toast('실패 기록을 지웠어요. 다음 분석 때 다시 시도해요'); } catch (e) { toast(e.message); } });
+  if (st.analyzeSummary) renderAnalyzeSummary(st.analyzeSummary);
+
+  // 레퍼런스 계정
+  renderAccountList();
+  const addAccount = async () => {
+    const input = $('#newHandle'), msg = $('#accMsg');
+    const v = input.value.trim(); if (!v) return;
+    try { const r = await api('/api/accounts', { method: 'POST', body: { handle: v } }); state.accounts = r.accounts; input.value = ''; msg.className = 'msg okk'; msg.textContent = '@' + r.handle + ' 추가했어요'; renderAccountList(); }
+    catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+  };
+  $('#addHandle').addEventListener('click', addAccount);
+  $('#newHandle').addEventListener('keydown', (e) => { if (e.key === 'Enter') addAccount(); });
+
+  // 경쟁사 계정
+  renderCompList();
+  const addComp = async () => {
+    const input = $('#newComp'), msg = $('#compMsg');
+    const v = input.value.trim(); if (!v) return;
+    try { const r = await api('/api/competitors', { method: 'POST', body: { handle: v } }); state.comp = r.competitors; input.value = ''; msg.className = 'msg okk'; msg.textContent = '@' + r.handle + ' 추가했어요. 다음 수집부터 비교에 들어가요.'; renderCompList(); }
+    catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+  };
+  $('#addComp').addEventListener('click', addComp);
+  $('#newComp').addEventListener('keydown', (e) => { if (e.key === 'Enter') addComp(); });
+  $('#myTranscripts').addEventListener('change', async (e) => {
+    const msg = $('#mtMsg');
+    try { state.config = await api('/api/config', { method: 'POST', body: { myTranscripts: e.target.checked } }); msg.className = 'msg okk'; msg.textContent = state.config.myTranscripts ? '켰어요. 다음 수집 때 내 상위 릴스 대본을 받아요' : '껐어요'; }
+    catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+  });
+  $('#autoSnap').addEventListener('change', async (e) => {
+    const msg = $('#autoMsg');
+    try { state.config = await api('/api/config', { method: 'POST', body: { autoSnapshot: e.target.checked } }); msg.className = 'msg okk'; msg.textContent = state.config.autoSnapshot ? '자동 스냅샷을 켰어요' : '자동 스냅샷을 껐어요. 수집 버튼을 누를 때만 찍어요'; }
+    catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+  });
+
+  // 기준 조회수
+  $('#saveMin').addEventListener('click', async () => {
+    const msg = $('#minMsg');
+    try { state.config = await api('/api/config', { method: 'POST', body: { minViews: $('#minViews').value } }); $('#minViews').value = fmtNum(state.config.minViews); msg.className = 'msg okk'; msg.textContent = fmtNum(state.config.minViews) + '회 이상으로 저장했어요. 다음 수집부터 적용돼요.'; }
+    catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+  });
+  $('#minViews').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#saveMin').click(); });
+
+  // 이미 돌고 있거나 지난 결과가 있으면 표시
+  if (running) startPolling();
+  else if (st.log && st.log.length) { $('#logbox').textContent = st.log.join('\n'); }
+  if (st.summary) renderSummary(st.summary);
+}
+function renderAccountList() {
+  const el = $('#accList'); if (!el) return;
+  if (!state.accounts.length) { el.innerHTML = '<div class="none">아직 등록된 계정이 없어요</div>'; return; }
+  el.innerHTML = state.accounts.map((a) => `<div class="item"><span class="h">@${esc(a.handle)}</span><span class="c">${a.count}개 수집</span><button class="btn icon" data-del="${esc(a.handle)}" title="삭제">✕</button></div>`).join('');
+  el.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', async () => {
+    if (!confirm('@' + b.dataset.del + ' 을(를) 목록에서 뺄까요? 이미 수집된 릴스는 남아요.')) return;
+    try { const r = await api('/api/accounts/' + encodeURIComponent(b.dataset.del), { method: 'DELETE' }); state.accounts = r.accounts; renderAccountList(); }
+    catch (e) { toast(e.message); }
+  }));
+}
+function renderCompList() {
+  const el = $('#compList'); if (!el) return;
+  const hs = state.comp.handles || [];
+  if (!hs.length) { el.innerHTML = '<div class="none">아직 등록된 경쟁사가 없어요</div>'; return; }
+  el.innerHTML = hs.map((h) => { const s = snapsOf(h); const last = s[s.length - 1]; return `<div class="item"><span class="h">@${esc(h)}</span><span class="c">${last ? '팔로워 ' + fmtNum(last.followers) + ' · 스냅샷 ' + s.length + '장' : '아직 수집 전'}</span><button class="btn icon" data-delc="${esc(h)}" title="삭제">✕</button></div>`; }).join('');
+  el.querySelectorAll('[data-delc]').forEach((b) => b.addEventListener('click', async () => {
+    if (!confirm('@' + b.dataset.delc + ' 을(를) 경쟁사에서 뺄까요? 쌓인 스냅샷은 남아 있어서 다시 넣으면 이어져요.')) return;
+    try { const r = await api('/api/competitors/' + encodeURIComponent(b.dataset.delc), { method: 'DELETE' }); state.comp = r.competitors; renderCompList(); }
+    catch (e) { toast(e.message); }
+  }));
+}
+function renderAnalyzeSummary(s) {
+  const el = $('#anaSummary'); if (!el) return;
+  if (s.error) { el.innerHTML = `<h3 class="err">분석이 멈췄어요</h3><div>${esc(s.error)}</div>`; return; }
+  el.innerHTML = `<h3>분석 완료</h3><div>이번에 <b>${fmtNum(s.done)}</b>/${fmtNum(s.total)}건 성공${s.failed ? ` · 실패 ${fmtNum(s.failed)}건 (로그 참고)` : ''}</div><div class="muted small" style="margin-top:4px">전체 분석됨 ${fmtNum(s.analyzed)}개 · 남은 미분석 ${fmtNum(s.pending)}개${s.creditsUsed ? ' · 영상 주소 재획득에 ScrapeCreators ' + s.creditsUsed + '크레딧' : ''} · ${fmtDateTime(s.finishedAt)}</div>`;
+}
+function renderSummary(s) {
+  const el = $('#summary'); if (!el) return;
+  if (s.error) { el.innerHTML = `<h3 class="err">수집이 멈췄어요</h3><div>${esc(s.error)}</div><div class="muted small" style="margin-top:6px">사용 크레딧 ${fmtNum(s.creditsUsed || 0)} · 남은 크레딧 ${s.creditsRemaining != null ? fmtNum(s.creditsRemaining) : '-'}</div>`; return; }
+  const rows = (s.accounts || []).map((a) => `<tr>
+      <td>@${esc(a.handle)}</td>
+      <td>${a.error ? `<span class="err">${esc(a.error)}</span>` : `새로 ${a.added} · 갱신 ${a.updated} · 기준 미달 ${a.belowMin || 0} · 훑음 ${a.scanned}`}</td>
+    </tr>`).join('');
+  const crows = (s.competitors || []).map((c) => `<tr>
+      <td>${c.isMe ? '나 · ' : ''}@${esc(c.handle)}</td>
+      <td>${c.error ? `<span class="err">${esc(c.error)}</span>` : `팔로워 ${fmtNum(c.followers)}${c.delta != null ? ' (' + fmtSigned(c.delta) + ')' : ' (첫 스냅샷)'}${c.reelsSeen ? ' · 릴스 ' + c.reelsSeen + '개' : ''}`}</td>
+    </tr>`).join('');
+  el.innerHTML = `<h3>수집 완료</h3>
+    <div>새로 추가 <b>${fmtNum(s.added)}</b>개 · 갱신 <b>${fmtNum(s.updated)}</b>개 (전체 ${fmtNum(s.totalRefs)}개)${s.snapshots ? ` · 경쟁사 스냅샷 <b>${fmtNum(s.snapshots)}</b>개` : ''}</div>
+    <div class="muted small" style="margin-top:4px">사용 크레딧 ${fmtNum(s.creditsUsed)} · 남은 크레딧 ${s.creditsRemaining != null ? fmtNum(s.creditsRemaining) : '-'} · ${fmtDateTime(s.finishedAt)}</div>
+    ${rows ? `<table><tr><th>레퍼런스</th><th>결과</th></tr>${rows}</table>` : ''}
+    ${crows ? `<table><tr><th>경쟁사</th><th>결과</th></tr>${crows}</table>` : ''}
+    ${s.notFound && s.notFound.length ? `<div class="msg err">찾을 수 없었던 계정: ${[...new Set(s.notFound)].map((h) => '@' + esc(h)).join(', ')} (아이디 철자를 확인해 주세요)</div>` : ''}`;
+}
+
+// ───────────────────────── 수집 상태 폴링 (2초) ─────────────────────────
+function startPolling() {
+  clearInterval(state.pollTimer);
+  const tick = async () => {
+    let st;
+    try { st = await api('/api/status'); } catch { return; }
+    state.status = st;
+    renderCredits();
+    const box = $('#logbox');
+    if (box) {
+      const text = st.log.join('\n');
+      if (box.textContent !== text) { box.textContent = text; box.scrollTop = box.scrollHeight; }
+    }
+    if (!st.running) {
+      // 수집 → 자동 분석으로 이어질 수 있어 1초 뒤 한 번 더 확인
+      if (!state._graceChecked) { state._graceChecked = true; setTimeout(async () => { try { const s2 = await api('/api/status'); if (s2.running) { state._graceChecked = false; return; } } catch {} state._graceChecked = false; finishPolling(); }, 1200); return; }
+      return;
+    }
+  };
+  const finishPolling = async () => {
+    const st = state.status;
+    {
+      clearInterval(state.pollTimer); state.pollTimer = null;
+      try { await loadAll(); } catch {}
+      if (state.tab === 'settings') {
+        const btn = $('#collectBtn'); if (btn) { btn.disabled = false; btn.textContent = '수집 시작'; }
+        const ab = $('#analyzeBtn'); if (ab) { ab.disabled = !state.config.geminiKey; ab.textContent = '분석 시작'; }
+        const lr = $('#lastRun'); if (lr) lr.textContent = fmtDateTime(state.status.lastRunAt);
+        const la = $('#lastAnalyze'); if (la) la.textContent = fmtDateTime(state.config.lastAnalyzeAt);
+        renderAccountList(); renderCompList();
+        if (state.status.summary) renderSummary(state.status.summary);
+        if (state.status.analyzeSummary) renderAnalyzeSummary(state.status.analyzeSummary);
+      } else render();
+      // 모달이 열린 채 분석이 끝났으면 그 릴스로 다시 연다
+      if (state.watchCode) { const it = state.refs.find((x) => x.code === state.watchCode); state.watchCode = null; if (it && $('#panel').classList.contains('open')) openPanel(it, state.refsQuery.trim()); }
+    }
+  };
+  tick();
+  state.pollTimer = setInterval(tick, 2000);
+}
+
+// ───────────────────────── 시작 ─────────────────────────
+(async () => {
+  renderTabs();
+  try { await loadAll(); }
+  catch (e) { $('#page').innerHTML = `<div class="empty"><p>서버와 연결할 수 없어요. 시작 파일을 다시 실행해 주세요.<br><span class="small">${esc(e.message)}</span></p></div>`; return; }
+  showTab(state.tab);
+  if (state.status && state.status.running) startPolling();
+})();
+</script>
+</body>
+</html>
