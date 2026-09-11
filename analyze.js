@@ -152,8 +152,10 @@ async function gfetch(url, opts) {
     if (res.status !== 429 || i >= 3) return res;
     const j = await res.clone().json().catch(() => ({}));
     const det = JSON.stringify(j.error?.details || []);
-    if (/PerDay/i.test(det)) return res;
-    const m = det.match(/"retryDelay":"(\d+)s"/); const wait = Math.min(90, (m ? Number(m[1]) : 30) + 5);
+    // quotaId 는 PerDay 로 찍혀도 retryDelay 가 몇 초면 버스트 제한(실측). retryDelay 기준으로 판단: 120초 이하면 기다렸다 재시도
+    const m = det.match(/"retryDelay":"(\d+)(?:\.\d+)?s"/); const delay = m ? Number(m[1]) : null;
+    if (delay === null || delay > 120) return res;
+    const wait = Math.min(125, delay + 5);
     log(`  ⏳ Gemini 분당 제한 → ${wait}초 대기 후 재시도 (${i + 1}/3)`);
     await new Promise((r) => setTimeout(r, wait * 1000));
   }
