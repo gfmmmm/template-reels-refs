@@ -34,7 +34,7 @@
   .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .toolbar { display: grid; grid-template-columns: 1fr minmax(220px, 420px) 1fr; align-items: center; gap: 14px; margin-bottom: 18px; }
   .toolbar .right { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
-  .title { font-size: 16px; font-weight: 700; }
+  .title { font-size: 16px; font-weight: 700; white-space: nowrap; } /* 720~900px 폭에서 툴바 1fr 칸이 눌려 제목이 세로로 깨지던 것 */
   .title small { font-weight: 500; color: var(--muted); margin-left: 6px; }
   .input { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; background: #fff; outline: none; }
   .input:focus { border-color: #999; }
