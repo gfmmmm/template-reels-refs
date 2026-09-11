@@ -74,7 +74,7 @@
 ### 5-1. GitHub
 
 - `gh --version`. 없으면 맥 `brew install gh`(brew 없으면 https://github.com/cli/cli/releases 의 .pkg 를 받아 `open`), 윈도우 `winget install GitHub.cli`.
-- `gh auth status`. 로그인이 없으면 `gh auth login -w -h github.com -p https --skip-ssh-key` 를 **백그라운드로 돌려 출력을 파일로** 받고, 거기 찍힌 일회용 코드를 읽어 "https://github.com/login/device 를 열고 이 코드를 입력해 주세요: XXXX-XXXX" 라고 준다. `gh auth status` 가 될 때까지 몇 초마다 확인.
+- `gh auth status`. 이미 로그인돼 있어도 `Token scopes` 에 `workflow` 가 없으면 `gh auth refresh -h github.com -s workflow` (없으면 Actions 파일 push 가 거부된다). 로그인이 없으면 `gh auth login -w -h github.com -p https -s workflow --skip-ssh-key` 를 **백그라운드로 돌려 출력을 파일로** 받고, 거기 찍힌 일회용 코드를 읽어 "https://github.com/login/device 를 열고 이 코드를 입력해 주세요: XXXX-XXXX" 라고 준다. `gh auth status` 가 될 때까지 몇 초마다 확인.
 - 이 폴더에만 git 작성자를 이 GitHub 계정으로: `gh api user` 로 id·login 을 받아 `git config --local user.name <login>`, `git config --local user.email <id>+<login>@users.noreply.github.com`. (다른 계정 이메일이면 Vercel 이 배포를 막는다.)
 - 저장소:
   - `origin` 이 이미 있으면(템플릿으로 받음) 그대로 쓴다. `gh repo view --json isPrivate` 가 false 면 "저장소를 비공개로 바꿀게요" 하고 `gh repo edit --visibility private --accept-visibility-change-consequences`.
