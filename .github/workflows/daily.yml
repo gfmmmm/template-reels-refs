@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
+      TZ: Asia/Seoul   # 스냅샷 날짜·todayKey 가 한국 날짜로 찍히게 (UTC 러너에서 07:00 KST 실행이 '어제'로 찍히던 문제)
       HAS_GEMINI: ${{ secrets.GEMINI_API_KEY != '' }}   # 스텝의 if 에서는 secrets 를 직접 못 쓴다
     steps:
       - uses: actions/checkout@v4
