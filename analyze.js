@@ -145,16 +145,29 @@ async function scVideoUrl(reelUrl, key) {
   const m = j.data?.xdt_shortcode_media || {};
   return { url: m.video_url || m.video_versions?.[0]?.url || null, creditsRemaining: j.credits_remaining, charged: j.credits_charged || 0 };
 }
+// 429 가운데 분당 제한(quotaId 에 PerMinute)은 retryDelay 만큼 기다렸다 최대 3회 재시도. 하루 한도(PerDay)만 진짜 멈춤 (2026-09-12: 새 키가 분당 제한에 걸리자 하루 한도로 오인해 멈추던 것)
+async function gfetch(url, opts) {
+  for (let i = 0; ; i++) {
+    const res = await fetch(url, opts);
+    if (res.status !== 429 || i >= 3) return res;
+    const j = await res.clone().json().catch(() => ({}));
+    const det = JSON.stringify(j.error?.details || []);
+    if (/PerDay/i.test(det)) return res;
+    const m = det.match(/"retryDelay":"(\d+)s"/); const wait = Math.min(90, (m ? Number(m[1]) : 30) + 5);
+    log(`  ⏳ Gemini 분당 제한 → ${wait}초 대기 후 재시도 (${i + 1}/3)`);
+    await new Promise((r) => setTimeout(r, wait * 1000));
+  }
+}
 function geminiErr(res, j, what) {
   const msg = (j.error?.message || '').slice(0, 120);
   if (res.status === 400 && /API key/i.test(msg)) return new Error('Gemini API 키가 잘못됐어요. .env 의 GEMINI_API_KEY 를 확인해 주세요');
-  if (res.status === 429) return new Error('Gemini 무료 한도에 걸렸어요. 1분 뒤 다시 시도하거나 내일 이어서 분석해 주세요');
+  if (res.status === 429) return new Error('Gemini 무료 한도에 걸렸어요. 1분 뒤 다시 시도하거나 내일 이어서 분석해 주세요' + (/PerDay/i.test(JSON.stringify(j.error?.details || [])) ? ' (하루 한도)' : ' (분당 제한 재시도 소진)'));
   return new Error(`Gemini ${what} 실패 (HTTP ${res.status}${msg ? ': ' + msg : ''})`);
 }
 // 영상 파일 → Gemini 시각분석
 async function geminiAnalyze(videoPath, gkey) {
   const bytes = fs.readFileSync(videoPath);
-  const up = await fetch(`${G}/upload/v1beta/files?key=${gkey}`, {
+  const up = await gfetch(`${G}/upload/v1beta/files?key=${gkey}`, {
     method: 'POST',
     headers: { 'X-Goog-Upload-Protocol': 'raw', 'X-Goog-Upload-Content-Type': 'video/mp4', 'Content-Type': 'video/mp4' },
     body: bytes,
@@ -167,12 +180,12 @@ async function geminiAnalyze(videoPath, gkey) {
     let state = file.state;
     for (let i = 0; i < 30 && state !== 'ACTIVE'; i++) {
       await sleep(2000);
-      const s = await (await fetch(`${G}/v1beta/${file.name}?key=${gkey}`)).json();
+      const s = await (await gfetch(`${G}/v1beta/${file.name}?key=${gkey}`)).json();
       state = s.state;
       if (state === 'FAILED') throw new Error('Gemini 영상 처리 실패');
     }
     if (state !== 'ACTIVE') throw new Error(`Gemini 영상 처리 타임아웃 (state=${state}, 60초 초과)`);
-    const gen = await fetch(`${G}/v1beta/models/${MODEL}:generateContent?key=${gkey}`, {
+    const gen = await gfetch(`${G}/v1beta/models/${MODEL}:generateContent?key=${gkey}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ fileData: { mimeType: 'video/mp4', fileUri: file.uri } }, { text: VISUAL_PROMPT }] }] }),
     });
@@ -180,7 +193,7 @@ async function geminiAnalyze(videoPath, gkey) {
     if (!gen.ok) throw geminiErr(gen, gj, '시각분석'); // HTTP 오류를 빈 응답으로 삼키면 쓰레기 분석이 저장된다
     return extractJson(gj.candidates?.[0]?.content?.parts?.[0]?.text || '');
   } finally {
-    try { await fetch(`${G}/v1beta/${file.name}?key=${gkey}`, { method: 'DELETE' }); } catch { /* 무시 */ }
+    try { await gfetch(`${G}/v1beta/${file.name}?key=${gkey}`, { method: 'DELETE' }); } catch { /* 무시 */ }
   }
 }
 // 텍스트 프롬프트 → Gemini 종합 (2회 재시도)
@@ -190,7 +203,7 @@ async function geminiText(prompt, gkey) {
     const ctrl = new AbortController();
     const to = setTimeout(() => ctrl.abort(), 90000);
     try {
-      const r = await fetch(`${G}/v1beta/models/${MODEL}:generateContent?key=${gkey}`, {
+      const r = await gfetch(`${G}/v1beta/models/${MODEL}:generateContent?key=${gkey}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctrl.signal,
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
       });
