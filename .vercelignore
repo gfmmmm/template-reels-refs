@@ -1,0 +1,12 @@
+# Vercel 은 화면(index.html + data/ + middleware.js)만 정적으로 올린다.
+# server.js 가 올라가면 Vercel 이 "Node 서버"로 오인해 data/ 경로가 404 (2026-09-12 확인)
+server.js
+collect.js
+analyze.js
+시작.command
+시작.bat
+.env
+.env.local
+계정/
+기획/
+.claude/

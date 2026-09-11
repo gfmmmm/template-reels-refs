@@ -86,7 +86,7 @@
 
 - `vercel --version`. 없으면 `npm i -g vercel`(권한 오류면 `npx vercel` 로 대체).
 - `vercel whoami`. 안 되면: 계정이 없으면 https://vercel.com/signup 에서 "Continue with GitHub". `vercel login --non-interactive` 를 백그라운드로 돌려 출력의 "Visit https://vercel.com/oauth/device?user_code=…" 주소를 사용자에게 열어 준다. `vercel whoami` 가 될 때까지 대기.
-- `vercel link --yes --project <저장소 이름>`. 비대화 모드라 `"reason":"missing_scope"` JSON 이 나오면 `choices[0].name` 을 읽어 `--scope <그 값>` 을 붙여 다시. 성공 메시지에 "Connecting GitHub repository … Connected" 가 있으면 자동 배포 연결까지 된 것. `vercel git connect` 로 한 번 더 확인("already connected" 면 됨). `.gitignore` 에 `.vercel` 이 중복으로 추가됐으면 `git checkout .gitignore`.
+- `vercel link --yes --project <저장소 이름>`. 링크 직후 `vercel project inspect <이름>` 의 Framework Preset 이 **Node** 로 잡히면(2026-09 부터 server.js 를 보고 자동으로 그렇게 됨 → data/ 가 404) API 로 풀어준다: `curl -X PATCH https://api.vercel.com/v9/projects/<프로젝트 ID> -H "Authorization: Bearer <~/Library/Application Support/com.vercel.cli/auth.json 의 token>" -H "Content-Type: application/json" -d '{"framework": null}'`. `.vercelignore` 가 server.js 를 빼 주므로 정적으로 올라간다. 비대화 모드라 `"reason":"missing_scope"` JSON 이 나오면 `choices[0].name` 을 읽어 `--scope <그 값>` 을 붙여 다시. 성공 메시지에 "Connecting GitHub repository … Connected" 가 있으면 자동 배포 연결까지 된 것. `vercel git connect` 로 한 번 더 확인("already connected" 면 됨). `.gitignore` 에 `.vercel` 이 중복으로 추가됐으면 `git checkout .gitignore`.
 - GitHub 앱 미설치 메시지가 나오면 https://github.com/apps/vercel 을 열어 이 저장소에 권한을 주게 한 뒤 다시.
 
 ### 5-3. 비밀번호 잠금
