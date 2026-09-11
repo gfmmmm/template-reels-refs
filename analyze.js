@@ -270,9 +270,10 @@ async function main() {
       done++;
       log(`  ${lowRel ? '🙈' : '✅'} ${an.주제}${lowRel ? ' [관련성 낮음 → 숨김]' : ''} · 관련성 ${an.내채널_관련성.등급}`);
     } catch (e) {
+      // 키·크레딧·무료 한도는 계정 문제라 이 릴스 탓이 아님 → 실패 횟수에 안 세고 멈춤 (세면 매일 한도 경계의 릴스가 3일 뒤 영구 제외됨)
+      if (/키가 잘못|크레딧이 소진|무료 한도/.test(e.message)) { log(`  ❌ ${e.message}`); log('✖ 여기서 멈춥니다: ' + e.message); break; }
       fails[r.code] = (fails[r.code] || 0) + 1;
       log(`  ❌ ${e.message} (누적 ${fails[r.code]}회)`);
-      if (/키가 잘못|크레딧이 소진|무료 한도/.test(e.message)) { log('✖ 여기서 멈춥니다: ' + e.message); break; }
     } finally { try { fs.unlinkSync(vid); } catch { /* 없음 */ } }
   }
   finish(refs, config, fails, work.length, done, credits, creditsRemaining);
