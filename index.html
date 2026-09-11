@@ -208,6 +208,10 @@
   .toast.show { opacity: 1; }
 
   /* ── 좁은 화면 ── */
+  @media (max-width: 1000px) { /* 720~1000px: 툴바 3칸이 안 들어가 오른쪽 필터가 밖으로 나가던 것 → 제목+검색 / 필터 두 줄 */
+    .toolbar { grid-template-columns: auto minmax(0, 1fr); }
+    .toolbar .right { grid-column: 1 / -1; justify-content: flex-start; flex-wrap: wrap; }
+  }
   @media (max-width: 720px) {
     .app { flex-direction: column; }
     .sidebar { width: auto; flex: none; height: auto; position: sticky; border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; background: #fff; z-index: 10; }
