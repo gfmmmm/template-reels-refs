@@ -70,9 +70,10 @@ function buildSynthPrompt(r, videoAnalysis, ctx) {
   const saleNote = commerce ? `\n이 릴스는 ${commerce} 콘텐츠다 — 어떻게 제품을 사고 싶게 만드는지(소구점)도 분석하라. 영상·대본에 실제로 있는 장치만 적고 지어내지 마라.` : '';
   return `너는 릴스 기획 관점의 숏폼 레퍼런스 분석가다. 남의 계정에서 터진 릴스를 해부해 "왜 터졌고, 내 계정이 뭘 훔쳐올지"를 정리한다.${saleNote}
 
-## 내 계정 (차용포인트는 반드시 이 계정 기준으로 맞춤하라)
+## 내 계정 @${ctx.handle || '?'} (차용포인트는 반드시 이 계정 기준으로 맞춤하라)
 - 채널 정체성: ${ctx.brief || '(미설정)'}
 - 콘텐츠 기둥: ${ctx.pillars.join(' / ') || '(미설정)'}
+- 차용포인트 각 항목은 "우리 @${ctx.handle || '계정'}의 [기둥 이름] 콘텐츠에서 …" 로 시작해, 위 정체성에 나온 우리 소재·시청자·말투로 번역한 구체 기획 한 줄을 쓴다. "우리 계정에서 활용하세요" 같은 빈 문장 금지 — 어떤 소재로 어떤 첫 3초를 만들지까지 적는다
 
 ## 분석 프레임워크 (터진 이유를 이 4개 축에서 찾아라 — 기획이 90%)
 1. 초반 3초 후킹 — 어떤 장치로 스크롤을 멈췄나 (결과 먼저 / 질문 / 상식 깨기 / 권위 / 공감 등)
@@ -228,7 +229,7 @@ async function main() {
   fs.mkdirSync(TMP, { recursive: true });
 
   const config = Object.assign({ analyzeMax: 20, analyzeFails: {}, channel: { brief: '', pillars: [] } }, readJson(FILES.config, {}));
-  const ctx = { brief: String(config.channel?.brief || ''), pillars: Array.isArray(config.channel?.pillars) ? config.channel.pillars.filter(Boolean) : [] };
+  const ctx = { handle: String(config.myHandle || ''), brief: String(config.channel?.brief || ''), pillars: Array.isArray(config.channel?.pillars) ? config.channel.pillars.filter(Boolean) : [] };
   const fails = config.analyzeFails && typeof config.analyzeFails === 'object' ? config.analyzeFails : {};
   const refs = readJson(FILES.refs, []);
   const MAX = Math.max(1, Number(config.analyzeMax) || 20);
