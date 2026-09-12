@@ -150,6 +150,7 @@ async function scVideoUrl(reelUrl, key) {
 async function gfetch(url, opts) {
   for (let i = 0; ; i++) {
     const res = await fetch(url, opts);
+    if ([502, 503, 504].includes(res.status) && i < 3) { log(`  ⏳ Gemini 서버 혼잡(${res.status}) → 20초 대기 후 재시도 (${i + 1}/3)`); await new Promise((r) => setTimeout(r, 20000)); continue; }
     if (res.status !== 429 || i >= 3) return res;
     const j = await res.clone().json().catch(() => ({}));
     const det = JSON.stringify(j.error?.details || []);
