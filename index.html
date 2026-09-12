@@ -38,6 +38,7 @@
   .title small { font-weight: 500; color: var(--muted); margin-left: 6px; }
   .input { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; background: #fff; outline: none; }
   .input:focus { border-color: #999; }
+  textarea.input { font: inherit; resize: vertical; line-height: 1.5; }
   .select { border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; background: #fff; }
   .btn { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 7px 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
   .btn:hover { background: var(--soft); }
@@ -339,6 +340,8 @@ async function loadAll() {
   }
   const j = async (f, fb) => { try { const r = await fetch('data/' + f + '?t=' + Date.now(), { cache: 'no-store' }); return r.ok ? await r.json() : fb; } catch { return fb; } };
   const [cfg, refs, accounts, comp] = await Promise.all([j('config.json', {}), j('refs.json', []), j('accounts.json', []), j('competitors.json', {})]);
+  // 클라우드 수정 기능(api/settings.js)이 배포돼 있으면 설정 탭에 수정 UI 를 켠다
+  try { const r = await fetch('/api/settings', { cache: 'no-store' }); const e = r.ok ? await r.json() : {}; state.editable = Boolean(e.editable); } catch { state.editable = false; }
   const norm = (h) => String(h || '').trim().replace(/^@/, '').toLowerCase();
   const counts = {}; for (const r of refs) counts[r.account] = (counts[r.account] || 0) + 1;
   state.refs = refs;
@@ -850,6 +853,7 @@ function renderCompetitors(page) {
 function renderSettingsStatic(page) {
   const cfg = state.config, st = state.status || {}, s = st.summary || {};
   const list = (arr, empty) => arr.length ? `<ul class="plain">${arr.map((x) => `<li>${x}</li>`).join('')}</ul>` : `<p class="muted">${empty}</p>`;
+  if (state.editable) return renderSettingsCloudEdit(page);
   page.innerHTML = `
     <div class="settings">
       <section class="section">
@@ -875,6 +879,58 @@ function renderSettingsStatic(page) {
         ${cfg.failedCodes.length ? `<p class="desc muted">분석 3회 실패로 제외된 릴스 ${cfg.failedCodes.length}개</p>` : ''}
       </section>
     </div>`;
+}
+// 클라우드 화면에서 직접 고치기 — api/settings.js 가 GitHub 에 커밋하고(→ 재배포) 원하면 수집까지 실행
+function renderSettingsCloudEdit(page) {
+  const cfg = state.config, st = state.status || {}, s = st.summary || {};
+  const savedKey = ls('editKey') || '';
+  page.innerHTML = `
+    <div class="settings">
+      <section class="section">
+        <h2>☁️ 클라우드 화면</h2>
+        <p class="desc">매일 아침 7시에 자동으로 수집·분석돼요. 아래에서 계정과 기준을 바꾸고 <b>저장</b>하면 2~3분 뒤 화면에 반영되고, <b>저장하고 지금 수집</b>을 누르면 5~10분 뒤 새 카드가 들어와요.</p>
+        <p class="desc">마지막 수집: <b>${fmtDateTime(cfg.lastRunAt)}</b> · 마지막 AI 분석: <b>${fmtDateTime(cfg.lastAnalyzeAt)}</b>${typeof s.creditsRemaining === 'number' ? ' · 남은 크레딧 ' + fmtNum(s.creditsRemaining) : ''}</p>
+      </section>
+      <section class="section">
+        <h2>레퍼런스 계정 <span class="muted small">· 터진 릴스를 가져올 계정 (한 줄에 하나, @ 없이)</span></h2>
+        <textarea class="input" id="edAccounts" rows="6" style="max-width:420px">${esc(state.accounts.map((a) => a.handle).join('\n'))}</textarea>
+        <div class="row" style="margin-top:8px"><span class="small muted">기준 조회수</span><input class="input" id="edMinViews" type="text" inputmode="numeric" value="${esc(cfg.minViews)}" style="width:130px"><span class="small muted">회 이상만 카드로 (분야가 작으면 50000~100000)</span></div>
+      </section>
+      <section class="section">
+        <h2>경쟁사 계정 <span class="muted small">· 팔로워 추이·순위표 비교 대상 (한 줄에 하나)</span></h2>
+        <textarea class="input" id="edCompetitors" rows="6" style="max-width:420px">${esc((state.comp.handles || []).join('\n'))}</textarea>
+        <div class="row" style="margin-top:8px"><span class="small muted">내 계정</span><input class="input" id="edMyHandle" value="${esc(cfg.myHandle || '')}" placeholder="@ 없이 아이디" style="width:200px"></div>
+      </section>
+      <section class="section">
+        <h2>채널 정체성 <span class="muted small">· AI 가 차용포인트를 "내 계정 기준"으로 쓸 때 참고</span></h2>
+        <textarea class="input" id="edBrief" rows="8" style="max-width:720px" placeholder="어떤 채널인지, 누구에게, 무엇을 주는지">${esc(cfg.channel.brief || '')}</textarea>
+        <div class="row" style="margin-top:8px"><input class="input" id="edPillars" placeholder="콘텐츠 기둥 (쉼표로 구분) 예: 살림 꿀팁, 육아 일상, 살림템 소개" value="${esc((cfg.channel.pillars || []).join(', '))}" style="max-width:720px"></div>
+      </section>
+      <section class="section">
+        <div class="row"><span class="small muted">수정 비밀번호</span><input class="input" id="edKey" type="password" value="${esc(savedKey)}" placeholder="받은 수정 비밀번호" style="width:200px"></div>
+        <div class="row" style="margin-top:10px"><button class="btn primary" id="edSave">저장</button><button class="btn primary" id="edSaveCollect">저장하고 지금 수집</button></div>
+        <div class="msg" id="edMsg"></div>
+        <p class="desc muted">저장하면 GitHub 저장소에 커밋되고 화면이 다시 배포돼요. 계정을 바꿔도 이미 모인 카드는 남고, 새 계정의 릴스는 다음 수집 때 들어와요.</p>
+      </section>
+    </div>`;
+  const msg = $('#edMsg');
+  const submit = async (collectNow) => {
+    const key = $('#edKey').value.trim(); if (!key) { msg.className = 'msg err'; msg.textContent = '수정 비밀번호를 넣어 주세요'; return; }
+    ls('editKey', key);
+    const body = { accounts: $('#edAccounts').value, competitors: $('#edCompetitors').value, minViews: Number(String($('#edMinViews').value).replace(/[^0-9]/g, '')), myHandle: $('#edMyHandle').value, channel: { brief: $('#edBrief').value, pillars: $('#edPillars').value }, collectNow };
+    for (const id of ['edSave', 'edSaveCollect']) $('#' + id).disabled = true;
+    msg.className = 'msg'; msg.textContent = '저장하는 중…';
+    try {
+      const r = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-edit-key': key }, body: JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || ('오류 ' + r.status));
+      msg.className = 'msg okk';
+      msg.textContent = `저장했어요 (커밋 ${j.commit}) · 레퍼런스 ${j.accounts.length}개 · 경쟁사 ${j.competitors.length}개. ` + (j.dispatched ? '수집이 시작됐어요 — 5~10분 뒤 새로고침해 보세요.' : '2~3분 뒤 새로고침하면 반영돼요.');
+    } catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+    finally { for (const id of ['edSave', 'edSaveCollect']) $('#' + id).disabled = false; }
+  };
+  $('#edSave').addEventListener('click', () => submit(false));
+  $('#edSaveCollect').addEventListener('click', () => submit(true));
 }
 function renderSettings(page) {
   if (STATIC) return renderSettingsStatic(page);
