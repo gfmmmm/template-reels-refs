@@ -883,7 +883,6 @@ function renderSettingsStatic(page) {
 // 클라우드 화면에서 직접 고치기 — api/settings.js 가 GitHub 에 커밋하고(→ 재배포) 원하면 수집까지 실행
 function renderSettingsCloudEdit(page) {
   const cfg = state.config, st = state.status || {}, s = st.summary || {};
-  const savedKey = ls('editKey') || '';
   page.innerHTML = `
     <div class="settings">
       <section class="section">
@@ -907,21 +906,18 @@ function renderSettingsCloudEdit(page) {
         <div class="row" style="margin-top:8px"><input class="input" id="edPillars" placeholder="콘텐츠 기둥 (쉼표로 구분) 예: 살림 꿀팁, 육아 일상, 살림템 소개" value="${esc((cfg.channel.pillars || []).join(', '))}" style="max-width:720px"></div>
       </section>
       <section class="section">
-        <div class="row"><span class="small muted">수정 비밀번호</span><input class="input" id="edKey" type="password" value="${esc(savedKey)}" placeholder="받은 수정 비밀번호" style="width:200px"></div>
-        <div class="row" style="margin-top:10px"><button class="btn primary" id="edSave">저장</button><button class="btn primary" id="edSaveCollect">저장하고 지금 수집</button></div>
+        <div class="row"><button class="btn primary" id="edSave">저장</button><button class="btn primary" id="edSaveCollect">저장하고 지금 수집</button></div>
         <div class="msg" id="edMsg"></div>
         <p class="desc muted">저장하면 GitHub 저장소에 커밋되고 화면이 다시 배포돼요. 계정을 바꿔도 이미 모인 카드는 남고, 새 계정의 릴스는 다음 수집 때 들어와요.</p>
       </section>
     </div>`;
   const msg = $('#edMsg');
   const submit = async (collectNow) => {
-    const key = $('#edKey').value.trim(); if (!key) { msg.className = 'msg err'; msg.textContent = '수정 비밀번호를 넣어 주세요'; return; }
-    ls('editKey', key);
     const body = { accounts: $('#edAccounts').value, competitors: $('#edCompetitors').value, minViews: Number(String($('#edMinViews').value).replace(/[^0-9]/g, '')), myHandle: $('#edMyHandle').value, channel: { brief: $('#edBrief').value, pillars: $('#edPillars').value }, collectNow };
     for (const id of ['edSave', 'edSaveCollect']) $('#' + id).disabled = true;
     msg.className = 'msg'; msg.textContent = '저장하는 중…';
     try {
-      const r = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-edit-key': key }, body: JSON.stringify(body) });
+      const r = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || ('오류 ' + r.status));
       msg.className = 'msg okk';

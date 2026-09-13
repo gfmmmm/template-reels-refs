@@ -2,8 +2,8 @@
 // 화면은 정적(보기 전용)이지만, 이 함수가 GitHub 저장소의 data/ 파일을 한 커밋으로 고치고(→ Vercel 자동 재배포)
 // 원하면 daily.yml 을 바로 실행(→ 수집·분석 → 봇 커밋 → 재배포)한다. 로컬 server.js 에서는 쓰이지 않는다.
 //
-// Vercel 환경변수 3개: GITHUB_TOKEN(저장소 쓰기 권한) · GH_REPO("owner/reels-refs") · EDIT_KEY(수정 비밀번호)
-// 요청: POST /api/settings  헤더 x-edit-key  본문 { accounts:[], competitors:[], minViews, myHandle, channel:{brief,pillars}, collectNow }
+// Vercel 환경변수 2개: GITHUB_TOKEN(저장소 쓰기 권한) · GH_REPO("owner/reels-refs")
+// 요청: POST /api/settings  본문 { accounts:[], competitors:[], minViews, myHandle, channel:{brief,pillars}, collectNow }
 // 응답: { ok, commit, dispatched }   GET 은 { editable: true } 만 (화면이 수정 UI 를 켤지 판단)
 
 const GH = 'https://api.github.com';
@@ -11,11 +11,11 @@ const HANDLE = /^[a-z0-9._]{1,30}$/i;
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  const token = process.env.GITHUB_TOKEN, repo = process.env.GH_REPO, editKey = process.env.EDIT_KEY;
-  if (req.method === 'GET') return res.status(200).json({ editable: Boolean(token && repo && editKey) });
+  // 수정 비밀번호 없음 (2026-09-13 회장님 결정: 유료 결제 미연동, 주소 아는 사람만 씀). EDIT_KEY 환경변수가 있어도 무시한다.
+  const token = process.env.GITHUB_TOKEN, repo = process.env.GH_REPO;
+  if (req.method === 'GET') return res.status(200).json({ editable: Boolean(token && repo) });
   if (req.method !== 'POST') return res.status(405).json({ error: '허용되지 않는 요청' });
-  if (!token || !repo || !editKey) return res.status(503).json({ error: '수정 기능이 아직 설정되지 않았어요 (환경변수)' });
-  if ((req.headers['x-edit-key'] || '') !== editKey) return res.status(401).json({ error: '수정 비밀번호가 틀렸어요' });
+  if (!token || !repo) return res.status(503).json({ error: '수정 기능이 아직 설정되지 않았어요 (환경변수)' });
 
   const body = typeof req.body === 'object' && req.body ? req.body : {};
   const norm = (arr) => [...new Set((Array.isArray(arr) ? arr : String(arr || '').split(/[,\n]/)).map((h) => String(h || '').trim().replace(/^@/, '').toLowerCase()).filter(Boolean))];

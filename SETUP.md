@@ -95,10 +95,9 @@
 - 사용자에게 한 번만: "화면 주소를 열면 아이디·비밀번호를 묻는데, 아이디는 아무거나, 비밀번호는 <값> 이에요. 바꾸고 싶으면 '화면 비밀번호 바꿔줘'."
 
 ### 5-3b. 화면에서 설정 바꾸기 켜기 (선택 — 컴퓨터 없이 계정·기준 조회수를 바꾸고 싶으면)
-`api/settings.js` 가 이미 들어 있다. Vercel 환경변수 3개를 넣으면 설정 탭이 수정 가능해진다(없으면 보기 전용).
+`api/settings.js` 가 이미 들어 있다. Vercel 환경변수 2개를 넣으면 설정 탭이 수정 가능해진다(없으면 보기 전용). 수정 비밀번호는 없다 — 주소를 아는 사람은 누구나 설정을 바꿀 수 있으니 주소를 공개하지 말 것.
 - `gh auth token` 으로 이 GitHub 계정의 토큰을 받아 `printf '%s' "<토큰>" | vercel env add GITHUB_TOKEN production`
 - `printf '%s' "<GitHub아이디>/<저장소이름>" | vercel env add GH_REPO production`
-- 수정 비밀번호를 만들어(예: `edit-abcd-1234`) `printf '%s' "<값>" | vercel env add EDIT_KEY production`, `.env` 의 `EDIT_KEY=` 에도 적어 둔다
 - 배포 뒤 `curl -s https://<주소>/api/settings` 가 `{"editable":true}` 면 됨. 사용자에게: "설정 탭에서 계정을 바꾸고 저장하면 GitHub 에 커밋되고 2~3분 뒤 반영돼요. '저장하고 지금 수집'은 5~10분."
 
 ### 5-4. 배포와 검증
